@@ -1,0 +1,58 @@
+<!-- src/main/resources/templates/gallery.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Gallery</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Photo Gallery</h1>
+    </header>
+
+    <main>
+        <div class="upload-section">
+            <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*" required>
+                <button type="submit">Upload Photo</button>
+            </form>
+        </div>
+
+        <div th:if="${message}" class="message">
+            <p th:text="${message}"></p>
+        </div>
+        <div th:if="${error}" class="error">
+            <p th:text="${error}"></p>
+        </div>
+
+        <div class="gallery">
+            <div class="photo-card" th:each="photo : ${photos}">
+                <a th:href="@{'/' + ${uploadDir} + '/' + ${photo.name}}" target="_blank">
+                    <img th:src="@{'/' + ${thumbnailDir} + '/' + ${photo.name}}"
+                         th:alt="${photo.name}"
+                         th:title="${photo.name}"
+                         class="thumbnail">
+                </a>
+                <div class="photo-info">
+                    <p class="photo-name" th:text="${photo.name}"></p>
+                    <p class="photo-date" th:text="${#temporals.format(photo.uploadTime, 'yyyy-MM-dd HH:mm')}"></p>
+                    <p class="photo-size" th:text="${#numbers.formatDecimal(photo.size, 0, 2)} + ' bytes'"></p>
+                    <form th:action="@{/delete/{id}(id=${photo.id})}" method="post" class="delete-form">
+                        <button type="submit" class="delete-btn">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <div th:if="${photos.isEmpty()}" class="no-photos">
+                <p>No photos uploaded yet.</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/script.js}"></script>
+</body>
+</html>
