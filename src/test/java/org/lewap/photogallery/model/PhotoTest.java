@@ -29,7 +29,8 @@ class PhotoTest {
                 "image.jpg",
                 "/uploads/image.jpg",
                 now,
-                2048L
+                2048L,
+                "/thumbnails/image.jpg"
         );
 
         assertEquals("1", photo.getId());
@@ -37,9 +38,8 @@ class PhotoTest {
         assertEquals("/uploads/image.jpg", photo.getPath());
         assertEquals(now, photo.getUploadTime());
         assertEquals(2048L, photo.getSize());
+        assertEquals("/thumbnails/image.jpg", photo.getThumbnailPath());
 
-        // Not part of constructor
-        assertNull(photo.getThumbnailPath());
     }
 
     @Test

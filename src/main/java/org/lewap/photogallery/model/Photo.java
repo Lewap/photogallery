@@ -12,12 +12,13 @@ public class Photo {
 
     public Photo() {}
 
-    public Photo(String id, String name, String path, LocalDateTime uploadTime, long size) {
+    public Photo(String id, String name, String path, LocalDateTime uploadTime, long size, String thumbnailPath) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.uploadTime = uploadTime;
         this.size = size;
+        this.thumbnailPath = thumbnailPath;
     }
 
     // Getters and setters

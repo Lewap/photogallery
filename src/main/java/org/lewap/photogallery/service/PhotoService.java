@@ -3,6 +3,7 @@ package org.lewap.photogallery.service;
 
 import jakarta.annotation.PostConstruct;
 import org.lewap.photogallery.model.Photo;
+import org.lewap.photogallery.model.PhotoEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -89,19 +90,23 @@ public class PhotoService {
             return null;
         }
 
-        String rand = UUID.randomUUID().toString() + ".jpg";
+        //String rand = UUID.randomUUID().toString() + ".jpg";
+        String rand = UUID.randomUUID().toString();
 
         Path filePath = Paths.get(uploadDir, rand);
         Files.write(filePath, file.getBytes());
         File thumbnailFile = generateThumbnail(filePath);
 
-        Photo photo = new Photo();
-        photo.setId(UUID.randomUUID().toString());
-        photo.setName(rand);
-        photo.setPath(filePath.toString());
-        photo.setUploadTime(LocalDateTime.now());
-        photo.setSize(file.getSize());
-        photo.setThumbnailPath(thumbnailFile.getPath());
+        PhotoEntity photoEntity = new PhotoEntity(
+                rand,
+                rand + ".jpg",
+                filePath.toString(),
+                LocalDateTime.now(),
+                file.getSize(),
+                thumbnailFile.getPath()
+        );
+
+        Photo photo = photoEntity.toPhoto();
 
         photos.add(photo);
         return photo;
