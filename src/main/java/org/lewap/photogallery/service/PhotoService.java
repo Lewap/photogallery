@@ -4,6 +4,7 @@ package org.lewap.photogallery.service;
 import jakarta.annotation.PostConstruct;
 import org.lewap.photogallery.model.Photo;
 import org.lewap.photogallery.model.PhotoEntity;
+import org.lewap.photogallery.repository.PhotoRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,13 +17,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class PhotoService {
+
+    private static final Logger log = LoggerFactory.getLogger(PhotoService.class);
 
     @Value("${upload.dir}")
     private String uploadDir;
@@ -36,10 +44,16 @@ public class PhotoService {
     @Value("${thumbnail.maxheight}")
     private int thumbnailMaxHeight;
 
+    private final PhotoRepository photoRepository;
+
+    public PhotoService(PhotoRepository photoRepository) {
+        this.photoRepository = photoRepository;
+    }
+
     @PostConstruct
     public void init() {
         createUploadDirectory();
-        loadPhotos();
+        syncWithFilesystem();
     }
 
     private final List<Photo> photos = new ArrayList<>();
@@ -59,30 +73,85 @@ public class PhotoService {
         }
     }
 
-    private void loadPhotos() {
-        File uploadFileDir = new File(uploadDir);
-        if (uploadFileDir.exists() && uploadFileDir.isDirectory()) {
-            File[] files = uploadFileDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile()) {
-                        String fileName = file.getName();
-                        Photo photo = new Photo();
-                        photo.setId(UUID.randomUUID().toString());
-                        photo.setName(fileName);
-                        photo.setPath(file.getAbsolutePath());
-                        photo.setUploadTime(LocalDateTime.now());
-                        photo.setSize(file.length());
-                        photo.setThumbnailPath(Paths.get(thumbnailDir, fileName).toString());
-                        photos.add(photo);
+    public void syncWithFilesystem() {
+        Path uploadPath = Paths.get(uploadDir);
+
+        if (!Files.exists(uploadPath) || !Files.isDirectory(uploadPath)) {
+            System.err.println("Upload directory does not exist: " + uploadDir);
+            return;
+        }
+
+        try {
+            // 1. Scan filesystem
+            List<File> filesOnDisk = Files.list(uploadPath)
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .toList();
+
+            // 2. Load DB state
+            List<PhotoEntity> dbPhotos = photoRepository.findAll();
+
+            Map<String, PhotoEntity> dbByFilename = dbPhotos.stream()
+                    .collect(Collectors.toMap(PhotoEntity::getName, p -> p));
+
+            Set<String> diskFilenames = filesOnDisk.stream()
+                    .map(File::getName)
+                    .collect(Collectors.toSet());
+
+            // 3. Add missing DB entries
+            for (File file : filesOnDisk) {
+                String fileName = file.getName();
+                if (!dbByFilename.containsKey(fileName)) {
+
+                    String id = UUID.randomUUID().toString();
+                    LocalDateTime uploadTime = Instant.ofEpochMilli(file.lastModified())
+                            .atZone(ZoneId.systemDefault())  // or UTC
+                            .toLocalDateTime();
+
+                    PhotoEntity entity = new PhotoEntity(
+                            id,
+                            fileName,
+                            file.getPath(),
+                            uploadTime,
+                            file.length(),
+                            Paths.get(thumbnailDir, fileName).toString()
+                    );
+
+                    photoRepository.save(entity);
+
+                    log.info("Added missing DB entry for file: {}", fileName);
+                } else {
+                    PhotoEntity entity = dbByFilename.get(fileName);
+                    if ( Boolean.TRUE.equals(entity.getIsMissing()) ) {
+                        //the file has been found on disk but is flagged as missing
+                        entity.setIsMissing(null);
+                        photoRepository.save(entity);
+                        log.info("isMissing flag has been cleared in the DB for the photo found on disk: {}", fileName);
                     }
                 }
             }
+
+            // 4. Detect DB entries missing on disk
+            for (PhotoEntity dbPhoto : dbPhotos) {
+                if (!diskFilenames.contains(dbPhoto.getName())) {
+                    log.warn("File missing on disk for DB entry: {}", dbPhoto.getName());
+                    dbPhoto.setIsMissing(true);
+                    photoRepository.save(dbPhoto);
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to sync filesystem with database", e);
         }
     }
 
     public List<Photo> getAllPhotos() {
-        return new ArrayList<>(photos);
+
+        syncWithFilesystem();
+        return photoRepository.findByIsMissingFalseOrIsMissingNull()
+                .stream()
+                .map(PhotoEntity::toPhoto)
+                .toList();
     }
 
     public Photo uploadPhoto(MultipartFile file) throws IOException {
@@ -90,26 +159,25 @@ public class PhotoService {
             return null;
         }
 
-        //String rand = UUID.randomUUID().toString() + ".jpg";
         String rand = UUID.randomUUID().toString();
+        String fileName = rand + ".jpg";
 
-        Path filePath = Paths.get(uploadDir, rand);
+        Path filePath = Paths.get(uploadDir, fileName);
         Files.write(filePath, file.getBytes());
         File thumbnailFile = generateThumbnail(filePath);
 
         PhotoEntity photoEntity = new PhotoEntity(
                 rand,
-                rand + ".jpg",
+                fileName,
                 filePath.toString(),
                 LocalDateTime.now(),
                 file.getSize(),
                 thumbnailFile.getPath()
         );
 
-        Photo photo = photoEntity.toPhoto();
+        photoRepository.save(photoEntity);
 
-        photos.add(photo);
-        return photo;
+        return photoEntity.toPhoto();
     }
 
     private File generateThumbnail(Path originalPhotoPath) throws IOException {
@@ -145,19 +213,34 @@ public class PhotoService {
     }
 
     public void deletePhoto(String id) {
-        //photos.removeIf(photo -> photo.getId().equals(id));
-        // Delete file from disk
-        Photo photoToDelete = photos.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-        if (photoToDelete != null) {
-            photos.remove(photoToDelete);
-            new File(photoToDelete.getPath()).delete();
-            String thumbnailPath = photoToDelete.getThumbnailPath();
-            if ( thumbnailPath != null ) {
-                new File(thumbnailPath).delete();
+
+        PhotoEntity entity = photoRepository.findById(id).orElse(null);
+
+        if (entity == null) {
+            return;
+        }
+
+        boolean fileDeleted = true;
+
+        File originalFile = new File(entity.getPath());
+        if (originalFile.exists()) {
+            fileDeleted = originalFile.delete();
+        }
+
+        String thumbnailPath = entity.getThumbnailPath();
+        if (thumbnailPath != null) {
+            File thumbnailFile = new File(thumbnailPath);
+            if (thumbnailFile.exists()) {
+                thumbnailFile.delete();
             }
+        }
+
+        if (fileDeleted) {
+            photoRepository.deleteById(id);
+        } else {
+            // fallback: mark as missing
+            entity.setIsMissing(true);
+            photoRepository.save(entity);
         }
     }
 }

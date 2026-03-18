@@ -9,6 +9,7 @@ public class Photo {
     private LocalDateTime uploadTime;
     private long size;
     private String thumbnailPath;
+    private String tags;
 
     public Photo() {}
 
@@ -70,4 +71,11 @@ public class Photo {
         this.thumbnailPath = thumbnailPath;
     }
 
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
 }

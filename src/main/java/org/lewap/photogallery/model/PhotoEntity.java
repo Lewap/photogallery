@@ -7,13 +7,15 @@ import java.time.LocalDateTime;
 @Table(name = "photos")
 public class PhotoEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     private String name;
     private String path;
     private LocalDateTime uploadTime;
     private long size;
     private String thumbnailPath;
+    private String tags;
+    private Boolean isMissing;
 
     // Constructors, getters, and setters
     public PhotoEntity() {}
@@ -39,5 +41,32 @@ public class PhotoEntity {
         );
     }
 
-    // Getters and setters...
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Boolean getIsMissing() {
+        return isMissing;
+    }
+
+    public void setIsMissing(Boolean isMissing) {
+        this.isMissing = isMissing;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getThumbnailPath() {
+        return thumbnailPath;
+    }
+
 }

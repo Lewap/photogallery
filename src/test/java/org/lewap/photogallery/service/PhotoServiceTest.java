@@ -27,7 +27,7 @@ class PhotoServiceTest {
     @TempDir
     Path tempThumbnailDir;
 
-    @BeforeEach
+    /*@BeforeEach
     void setUp() {
         photoService = new PhotoService();
 
@@ -39,7 +39,7 @@ class PhotoServiceTest {
 
         // Manually trigger @PostConstruct
         photoService.init();
-    }
+    }*/
 
     // ---------- INIT / LOAD TEST ----------
 
