@@ -9,15 +9,17 @@ public class Photo {
     private LocalDateTime uploadTime;
     private long size;
     private String thumbnailPath;
+    private String tags;
 
     public Photo() {}
 
-    public Photo(String id, String name, String path, LocalDateTime uploadTime, long size) {
+    public Photo(String id, String name, String path, LocalDateTime uploadTime, long size, String thumbnailPath) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.uploadTime = uploadTime;
         this.size = size;
+        this.thumbnailPath = thumbnailPath;
     }
 
     // Getters and setters
@@ -69,4 +71,11 @@ public class Photo {
         this.thumbnailPath = thumbnailPath;
     }
 
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
 }

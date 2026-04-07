@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 
@@ -83,7 +83,7 @@ public class PhotoGalleryApplicationTests {
 
         String photoJSON = uploadResult.getResponse().getContentAsString().trim();
         ObjectMapper mapper = new ObjectMapper();
-        String photoPath = mapper.readTree(photoJSON).get("path").asString();
+        String photoPath = mapper.readTree(photoJSON).get("path").toString();
 
         File uploadedFile = new File(photoPath);
         assertTrue(uploadedFile.exists(), "Uploaded file should exist");
@@ -107,8 +107,8 @@ public class PhotoGalleryApplicationTests {
 
         String photoJSON = uploadResult.getResponse().getContentAsString().trim();
         ObjectMapper mapper = new ObjectMapper();
-        String photoId = mapper.readTree(photoJSON).get("id").asString();
-        String photoPath = mapper.readTree(photoJSON).get("path").asString();
+        String photoId = mapper.readTree(photoJSON).get("id").toString();
+        String photoPath = mapper.readTree(photoJSON).get("path").toString();
 
         // Then delete it
         mockMvc.perform(post("/delete/" + photoId))

@@ -1,6 +1,8 @@
 package org.lewap.photogallery.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.lewap.photogallery.api.exception.*;
+import org.lewap.photogallery.controller.PhotoController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -8,7 +10,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 
-@ControllerAdvice
+@ControllerAdvice(assignableTypes = {
+        PhotoController.class
+})
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
@@ -28,7 +32,7 @@ public class GlobalExceptionHandler {
 
     // Fallback for anything we didn't explicitly handle
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleGeneric(Exception ex) {
+    public ResponseEntity<ApiError> handleGeneric(Exception ex, HttpServletRequest request) {
         return buildResponse("Unexpected server error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
