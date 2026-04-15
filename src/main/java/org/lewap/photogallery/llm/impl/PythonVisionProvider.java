@@ -12,7 +12,8 @@ import java.nio.charset.StandardCharsets;
 public class PythonVisionProvider implements LLMProvider {
 
     private final String pythonExecutable = "python"; // make configurable
-    private final String scriptPath = "smolvlm_cli.py";
+    //private final String scriptPath = "smolvlm_cli.py";
+    private final String scriptPath = "target/classes/python/smolvlm_cli.py";
 
     @Override
     public String generate(

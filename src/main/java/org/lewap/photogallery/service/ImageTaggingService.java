@@ -20,15 +20,17 @@ public class ImageTaggingService {
 
         LLMProvider provider = registry.get(providerName);
 
-        String prompt = """
+        /*String prompt = """
             Generate concise tags for this image:
             %s
             Return as comma-separated list.
-            """.formatted(imageDescription);
+            """.formatted(imageDescription);*/
+
+        String prompt = "tag this image, return as comma-separated list";
 
         GenerateOptions options = new GenerateOptions();
 
-        String tags = provider.generate(prompt, "null", options);
+        String tags = provider.generate(prompt, "/home/lewap/IdeaProjects/PhotoGallery/uploads/630f6f84-db2d-4c0c-a0bd-2d60a5fd3188.jpg", options);
 
         // TODO: persist result (DB/file/etc.)
         System.out.println("Generated tags: " + tags);

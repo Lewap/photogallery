@@ -19,6 +19,11 @@
                 <input type="file" name="file" accept="image/*" required>
                 <button type="submit">Upload Photo</button>
             </form>
+            <form th:action="@{/api/tagging}" method="post" >
+                <input type="hidden" name="provider" th:value="python-vision" />
+                <input type="hidden" name="description" th:value="test-description" />
+                <button type="submit" >Tag</button>
+            </form>
         </div>
 
         <div th:if="${message}" class="message">

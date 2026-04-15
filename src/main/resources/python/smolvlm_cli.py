@@ -1,6 +1,7 @@
 import sys
 import warnings
 import logging
+import torch
 from transformers import AutoProcessor, AutoModelForVision2Seq
 from PIL import Image
 
@@ -10,17 +11,24 @@ logging.getLogger().setLevel(logging.ERROR)
 
 # --- Check arguments ---
 if len(sys.argv) != 3:
-    print("Usage: python3 smolvlm_cli.py <image_path> <prompt>")
+    print("Usage: python smolvlm_cli.py <image_path> <prompt>")
     sys.exit(1)
 
 image_path = sys.argv[1]
 user_prompt = sys.argv[2]
-
 model_name = "HuggingFaceTB/SmolVLM-500M-Instruct"
+
+# --- Check for GPU ---
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#print(f"Using device: {device}")
 
 # --- Load model ---
 processor = AutoProcessor.from_pretrained(model_name)
 model = AutoModelForVision2Seq.from_pretrained(model_name)
+
+# Move model to device (GPU or CPU)
+model = model.to(device)
+model.eval()  # Set to evaluation mode
 
 # --- Load image ---
 image = Image.open(image_path)
@@ -48,6 +56,9 @@ inputs = processor(
     images=image,
     return_tensors="pt"
 )
+
+# Move inputs to device (GPU or CPU)
+inputs = {k: v.to(device) for k, v in inputs.items()}
 
 # --- Generate ---
 outputs = model.generate(**inputs, max_new_tokens=100)

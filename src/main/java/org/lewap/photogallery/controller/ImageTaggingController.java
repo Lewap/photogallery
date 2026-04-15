@@ -22,6 +22,7 @@ public class ImageTaggingController {
 
         service.tagImageAsync(provider, description);
 
-        return "Tagging started in background";
+        System.out.println("Controller: Tagging started in background");
+        return "redirect:/";
     }
 }
