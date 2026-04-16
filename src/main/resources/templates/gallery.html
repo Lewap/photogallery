@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Photo Gallery</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/script.js}"></script>
+    <!--<script src="../../../../target/classes/static/js/script.js"></script>-->
+    <!--<script src="../static/js/script.js"></script>-->
+    <!--<link rel="stylesheet" href="../static/css/style.css">-->
 </head>
 <body>
 <div class="container">
@@ -19,7 +23,7 @@
                 <input type="file" name="file" accept="image/*" required>
                 <button type="submit">Upload Photo</button>
             </form>
-            <form th:action="@{/api/tagging}" method="post" >
+            <form th:action="@{/api/tagging/single}" method="post" >
                 <input type="hidden" name="provider" th:value="python-vision" />
                 <input type="hidden" name="description" th:value="test-description" />
                 <button type="submit" >Tag</button>
@@ -33,14 +37,23 @@
             <p th:text="${error}"></p>
         </div>
 
+        <!-- Batch actions section -->
+        <div class="batch-actions" style="display: none; margin-bottom: 20px;">
+            <button id="batch-tag" class="tag-btn">Tag Selected</button>
+        </div>
+
         <div class="gallery">
             <div class="photo-card" th:each="photo : ${photos}">
-                <a th:href="@{'/' + ${uploadDir} + '/' + ${photo.name}}" target="_blank">
-                    <img th:src="@{'/' + ${thumbnailDir} + '/' + ${photo.name}}"
-                         th:alt="${photo.name}"
-                         th:title="${photo.name}"
-                         class="thumbnail">
-                </a>
+                <div class="photo-container">
+                    <input type="checkbox" class="photo-checkbox" th:id="|checkbox-${photo.id}|" th:data-photo-id="${photo.id}">
+                    <!--<label for="|checkbox-${photo.id}|" class="checkbox-label"></label>-->
+                    <a th:href="@{'/' + ${uploadDir} + '/' + ${photo.name}}" target="_blank">
+                        <img th:src="@{'/' + ${thumbnailDir} + '/' + ${photo.name}}"
+                             th:alt="${photo.name}"
+                             th:title="${photo.name}"
+                             class="thumbnail">
+                    </a>
+                </div>
                 <div class="photo-info">
                     <p class="photo-name" th:text="${photo.name}"></p>
                     <p class="photo-date" th:text="${#temporals.format(photo.uploadTime, 'yyyy-MM-dd HH:mm')}"></p>
@@ -58,6 +71,5 @@
     </main>
 </div>
 
-<script th:src="@{/js/script.js}"></script>
 </body>
 </html>
