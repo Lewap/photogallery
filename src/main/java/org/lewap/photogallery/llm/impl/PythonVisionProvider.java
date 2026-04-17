@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Service("python-vision")
 public class PythonVisionProvider implements LLMProvider {
@@ -52,7 +53,7 @@ public class PythonVisionProvider implements LLMProvider {
     @Override
     public String generate(
             String prompt,
-            String imagePath,
+            List<String> imagePaths,
             GenerateOptions options
     ) {
         try {
@@ -61,12 +62,16 @@ public class PythonVisionProvider implements LLMProvider {
 
             // make configurable
             String pythonExecutable = "python";
-            ProcessBuilder pb = new ProcessBuilder(
-                    pythonExecutable,
-                    scriptFromResource.toString(),
-                    imagePath,
-                    prompt
-            );
+
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command(pythonExecutable, scriptFromResource.toString());
+            // Add image paths as separate arguments
+            for (String imagePath : imagePaths) {
+                pb.command().add(imagePath);
+            }
+
+            // Add prompt as last argument
+            pb.command().add(prompt);
 
             // Merge stderr into stdout for easier debugging
             pb.redirectErrorStream(true);

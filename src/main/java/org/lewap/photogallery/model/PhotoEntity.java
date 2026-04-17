@@ -69,4 +69,17 @@ public class PhotoEntity {
         return thumbnailPath;
     }
 
+    @Override
+    public String toString() {
+        return "PhotoEntity{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", path='" + path + '\'' +
+                ", uploadTime=" + uploadTime +
+                ", size=" + size +
+                ", thumbnailPath='" + thumbnailPath + '\'' +
+                ", tags='" + tags + '\'' +
+                ", isMissing=" + isMissing +
+                '}';
+    }
 }

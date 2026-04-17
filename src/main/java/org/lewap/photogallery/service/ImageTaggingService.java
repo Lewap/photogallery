@@ -3,36 +3,43 @@ package org.lewap.photogallery.service;
 import org.lewap.photogallery.llm.GenerateOptions;
 import org.lewap.photogallery.llm.LLMProvider;
 import org.lewap.photogallery.llm.LLMProviderRegistry;
+import org.lewap.photogallery.model.PhotoEntity;
+import org.lewap.photogallery.repository.PhotoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ImageTaggingService {
 
     private final LLMProviderRegistry registry;
+    private final PhotoRepository photoRepository;
 
-    public ImageTaggingService(LLMProviderRegistry registry) {
+    public ImageTaggingService(LLMProviderRegistry registry, PhotoRepository photoRepository) {
         this.registry = registry;
+        this.photoRepository = photoRepository;
     }
 
     @Async
-    public void tagImageAsync(String providerName, String imageDescription) {
+    public void tagImagesAsync(String providerName, List<String> ids) {
 
         LLMProvider provider = registry.get(providerName);
-
-        /*String prompt = """
-            Generate concise tags for this image:
-            %s
-            Return as comma-separated list.
-            """.formatted(imageDescription);*/
-
         String prompt = "tag this image, return as comma-separated list";
-
         GenerateOptions options = new GenerateOptions();
+        List<PhotoEntity> photoEntities = photoRepository.findByIdIn(ids);
+        List<String> photoPaths = new ArrayList<>();
 
-        String tags = provider.generate(prompt, "/home/lewap/IdeaProjects/PhotoGallery/uploads/630f6f84-db2d-4c0c-a0bd-2d60a5fd3188.jpg", options);
+        for (PhotoEntity photoEntity : photoEntities) {
+            photoPaths.add(photoEntity.getPath());
+        }
+
+        String tags = provider.generate(prompt, photoPaths, options);
 
         // TODO: persist result (DB/file/etc.)
         System.out.println("Generated tags: " + tags);
     }
+
 }

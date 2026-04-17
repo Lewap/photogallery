@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 @Service("ollama")
 public class OllamaProvider implements LLMProvider {
@@ -22,7 +23,7 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public String generate(String inPrompt, String imagePath, GenerateOptions options) {
+    public String generate(String inPrompt, List<String> imagePaths, GenerateOptions options) {
         try {
             String body = mapper.writeValueAsString(
                     new Object() {

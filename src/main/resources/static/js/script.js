@@ -57,6 +57,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         form.appendChild(input);
                     });
 
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'provider';
+                    input.value = 'python-vision';
+                    form.appendChild(input);
                     document.body.appendChild(form);
                     form.submit();
                 }

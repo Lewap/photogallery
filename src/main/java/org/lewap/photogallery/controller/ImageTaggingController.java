@@ -18,28 +18,13 @@ public class ImageTaggingController {
         this.service = service;
     }
 
-    @PostMapping("/single")
-    public String tagImage(
-            @RequestParam String provider,
-            @RequestParam String description) {
-
-        service.tagImageAsync(provider, description);
-
-        System.out.println("Controller: Tagging started in background");
-        return "redirect:/";
-    }
-
     @PostMapping("/tag-selected")
     public String tagImageBulk(
-            //@RequestParam String provider,
-            //@RequestParam String description
+            @RequestParam String provider,
             @RequestParam("ids") List<String> ids
             ) {
-                for (String id : ids) {
-                    System.out.println("input list el = " + id);
-                }
 
-        //service.tagImageAsync(provider, description);
+        service.tagImagesAsync(provider, ids);
 
         System.out.println("Controller: Tagging bulk");
         return "redirect:/";
