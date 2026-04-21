@@ -49,6 +49,10 @@ public class PhotoEntity {
         this.tags = tags;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }

@@ -6,11 +6,15 @@ import org.lewap.photogallery.llm.GenerateOptions;
 import org.lewap.photogallery.llm.LLMProvider;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Map;
 
 @Service("ollama")
 public class OllamaProvider implements LLMProvider {
@@ -23,7 +27,7 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public String generate(String inPrompt, List<String> imagePaths, GenerateOptions options) {
+    public BufferedReader generate(String inPrompt, Map<String, String> images, GenerateOptions options) {
         try {
             String body = mapper.writeValueAsString(
                     new Object() {
@@ -41,8 +45,8 @@ public class OllamaProvider implements LLMProvider {
             HttpResponse<String> response =
                     client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            JsonNode root = mapper.readTree(response.body());
-            return root.get("response").asText();
+            // Return a BufferedReader wrapping the response
+            return new BufferedReader(new StringReader(response.body()));
 
         } catch (Exception e) {
             throw new RuntimeException("Ollama call failed", e);

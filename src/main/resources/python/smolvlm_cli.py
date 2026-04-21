@@ -11,14 +11,24 @@ logging.getLogger().setLevel(logging.ERROR)
 
 # --- Check arguments ---
 if len(sys.argv) < 3:
-    print("Usage: python smolvlm_cli.py <image1.jpg> [image2.jpg] ... [prompt]")
+    print("Usage: python smolvlm_cli.py <id1> <image1.jpg> [id2] [image2.jpg] ... [prompt]")
     sys.exit(1)
 
 # The last argument is always the prompt
 user_prompt = sys.argv[-1]
 
-# All other arguments are image paths
-image_paths = sys.argv[1:-1]
+# Process arguments in pairs: (id, image), (id, image), ...
+# So we take every other argument starting from index 1 (images) and skip the ids
+image_paths = []
+ids = []
+
+# Extract pairs: odd indices are IDs, even indices are image paths
+# We process all pairs except the last one which is the prompt
+for i in range(1, len(sys.argv) - 1, 2):
+    id_arg = sys.argv[i]
+    image_path = sys.argv[i + 1]
+    ids.append(id_arg)
+    image_paths.append(image_path)
 
 model_name = "HuggingFaceTB/SmolVLM-500M-Instruct"
 
@@ -36,7 +46,7 @@ model.eval()  # Set to evaluation mode
 
 # Process each image
 results = []
-for i, image_path in enumerate(image_paths):
+for i, (image_path, id_arg) in enumerate(zip(image_paths, ids)):
     try:
         # --- Load image ---
         image = Image.open(image_path)
@@ -73,7 +83,6 @@ for i, image_path in enumerate(image_paths):
 
         # --- Decode ONLY response ---
         decoded = processor.batch_decode(outputs, skip_special_tokens=True)[0]
-
         keyword = "Assistant: "
         idx = decoded.find(keyword)
         if idx == -1:
@@ -81,8 +90,7 @@ for i, image_path in enumerate(image_paths):
         else:
             res = decoded[idx + len(keyword):].strip()
 
-        results.append(f"{image_path}: {res}")
-
+        results.append(f"{id_arg},{res}")
     except Exception as e:
         results.append(f"Error processing {image_path}: {str(e)}")
 

@@ -1,11 +1,12 @@
 package org.lewap.photogallery.llm;
 
-import java.util.List;
+import java.io.BufferedReader;
+import java.util.Map;
 
 public interface LLMProvider {
 
-    String generate(String prompt,
-                          List<String> imagePaths,
-                          GenerateOptions options);
+    BufferedReader generate(String prompt,
+                            Map<String, String> images,
+                            GenerateOptions options);
 
 }
