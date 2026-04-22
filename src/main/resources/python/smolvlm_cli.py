@@ -79,7 +79,7 @@ for i, (image_path, id_arg) in enumerate(zip(image_paths, ids)):
         inputs = {k: v.to(device) for k, v in inputs.items()}
 
         # --- Generate ---
-        outputs = model.generate(**inputs, max_new_tokens=100)
+        outputs = model.generate(**inputs, max_new_tokens=20)
 
         # --- Decode ONLY response ---
         decoded = processor.batch_decode(outputs, skip_special_tokens=True)[0]
@@ -90,10 +90,12 @@ for i, (image_path, id_arg) in enumerate(zip(image_paths, ids)):
         else:
             res = decoded[idx + len(keyword):].strip()
 
-        results.append(f"{id_arg},{res}")
+        #results.append(f"{id_arg},{res}")
+        print(f"{id_arg},{res}")
     except Exception as e:
-        results.append(f"Error processing {image_path}: {str(e)}")
+        #results.append(f"Error processing {image_path}: {str(e)}")
+        print(f"Error processing {image_path}: {str(e)}")
 
 # Print all results
-for result in results:
-    print(result)
+#for result in results:
+#    print(result)

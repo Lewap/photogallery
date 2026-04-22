@@ -21,11 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSelectedPhotos() {
         const selectedCount = document.querySelectorAll('.photo-checkbox:checked').length;
 
-        // Show/hide batch actions based on selection
-        const batchActions = document.querySelector('.batch-actions');
-        if (batchActions) {
-            batchActions.style.display = selectedCount > 0 ? 'block' : 'none';
+        // Enable/disable the tag button based on selection
+        const tagButton = document.getElementById('tag-button');
+        if (tagButton) {
+            tagButton.disabled = selectedCount === 0;
         }
+
     }
 
     // Get IDs of selected photos
@@ -37,9 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return selected;
     }
 
-    const batchTagButton = document.getElementById('batch-tag');
-    if (batchTagButton) {
-        batchTagButton.addEventListener('click', function() {
+    const tagButton = document.getElementById('tag-button');
+    if (tagButton) {
+        tagButton.addEventListener('click', function() {
             const selectedIds = getSelectedPhotoIds();
             if (selectedIds.length > 0) {
                 if (confirm(`Are you sure you want to tag ${selectedIds.length} photo(s)?`)) {
@@ -60,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = 'provider';
-                    input.value = 'python-vision';
+                    //input.value = 'python-vision';
+                    input.value = 'ollama';
                     form.appendChild(input);
                     document.body.appendChild(form);
                     form.submit();

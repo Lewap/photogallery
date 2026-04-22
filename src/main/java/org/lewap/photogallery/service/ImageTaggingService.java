@@ -46,7 +46,8 @@ public class ImageTaggingService {
         try (BufferedReader reader = provider.generate(prompt, photos, options)) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String id = line.substring(0, line.indexOf(','));
+                log.info("LINE = " + line);
+                /*String id = line.substring(0, line.indexOf(','));
                 String tags = line.substring(line.indexOf(',')+1);
 
                 Optional<PhotoEntity> photoToSaveOpt = photoEntities.stream().filter(i -> id.equals(i.getId())).findAny();
@@ -57,7 +58,7 @@ public class ImageTaggingService {
                     log.info("Tags persisted for id = " + photoToSave.getId());
                 } else {
                     log.warn("Photo not found on storage " + id);
-                }
+                }*/
 
             }
 

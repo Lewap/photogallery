@@ -7,6 +7,7 @@
     <title>Photo Gallery</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script th:src="@{/js/script.js}"></script>
+    <script src="../static/js/script.js"></script>
     <!--<script src="../../../../target/classes/static/js/script.js"></script>-->
     <!--<script src="../static/js/script.js"></script>-->
     <!--<link rel="stylesheet" href="../static/css/style.css">-->
@@ -23,11 +24,10 @@
                 <input type="file" name="file" accept="image/*" required>
                 <button type="submit">Upload Photo</button>
             </form>
-            <form th:action="@{/api/tagging/single}" method="post" >
-                <input type="hidden" name="provider" th:value="python-vision" />
-                <input type="hidden" name="description" th:value="test-description" />
-                <button type="submit" >Tag</button>
-            </form>
+        </div>
+        <!-- New Tag button section -->
+        <div class="tag-section">
+            <button id="tag-button" class="tag-btn" disabled>Tag</button>
         </div>
 
         <div th:if="${message}" class="message">
@@ -35,11 +35,6 @@
         </div>
         <div th:if="${error}" class="error">
             <p th:text="${error}"></p>
-        </div>
-
-        <!-- Batch actions section -->
-        <div class="batch-actions" style="display: none; margin-bottom: 20px;">
-            <button id="batch-tag" class="tag-btn">Tag Selected</button>
         </div>
 
         <div class="gallery">
