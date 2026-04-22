@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -74,11 +73,38 @@ public class OllamaProvider implements LLMProvider {
             HttpResponse<String> response =
                     client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            String responseBody = response.body();
+            String processedContent = processResponse(responseBody, images);
+
             // Return a BufferedReader wrapping the response
-            return new BufferedReader(new StringReader(response.body()));
+            return new BufferedReader(new StringReader(processedContent));
 
         } catch (Exception e) {
             throw new RuntimeException("Ollama call failed", e);
         }
     }
+
+    private String processResponse(String responseBody, Map<String, String> images) {
+        // Parse the JSON response and extract the "response" field
+        try {
+            JsonNode rootNode = mapper.readTree(responseBody);
+            JsonNode responseNode = rootNode.get("response");
+
+            //llava3.2:11b accepts only 1 image in the request, so taking the first id to concatenate with the description is OK
+            Map.Entry<String, String> firstEntry = images.entrySet().iterator().next();
+            String id = firstEntry.getKey();
+
+            if (responseNode != null && responseNode.isTextual()) {
+                String rawResponse = responseNode.asText();
+                // Process the raw response - for example, clean up any extra whitespace
+                return id + "," + rawResponse.trim() + "\n";
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse Ollama response: {}. The original response will be returned", e.getMessage());
+        }
+
+        // Return original response if parsing fails
+        return responseBody + "\n";
+    }
+
 }
