@@ -4,12 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lewap.photogallery.llm.GenerateOptions;
 import org.lewap.photogallery.llm.LLMProvider;
+import org.lewap.photogallery.llm.ResultListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -32,79 +31,71 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public BufferedReader generate(String inPrompt, Map<String, String> images, GenerateOptions options) {
+    public void generate(String prompt, Map<String, String> images, GenerateOptions options, ResultListener listener) {
+        log.info("Ollama tagging started");
         try {
-            // Create the request body with prompt and image data
-            StringBuilder requestBody = new StringBuilder();
-            requestBody.append("{");
-            requestBody.append("\"model\":\"llama3.2-vision:11b\",");
-            requestBody.append("\"prompt\":").append(mapper.writeValueAsString(inPrompt)).append(",");
 
-            // Add images to the request
             if (images != null && !images.isEmpty()) {
-                requestBody.append("\"images\":[");
                 boolean first = true;
                 for (Map.Entry<String, String> entry : images.entrySet()) {
-                    if (!first) {
-                        requestBody.append(",");
-                    }
-                    first = false;
-
                     // Read image file and encode to base64
                     String imagePath = entry.getValue();
                     byte[] imageBytes = Files.readAllBytes(Path.of(imagePath));
                     String base64Image = Base64.getEncoder().encodeToString(imageBytes);
-                    requestBody.append("\"").append(base64Image).append("\"");
+                    String result = tagSingle(base64Image, prompt); //blocking
+                    listener.onResult(entry.getKey(), result);   // emit immediately
                 }
-                requestBody.append("],");
             }
+            listener.onComplete();
+        } catch (Exception e) {
+            listener.onError(e);
+        }
+    }
 
-            requestBody.append("\"stream\":false,");
-            requestBody.append("\"options\":{\"num_predict\":20, \"repeat_penalty\": 1.2, \"temperature\": 0.1}");
-            requestBody.append("}");
+    public String tagSingle(String base64Image, String prompt) {
+        try {
+            String body = """
+            {
+              "model": "llama3.2-vision:11b",
+              "prompt": "%s",
+              "images": ["%s"],
+              "stream": false,
+              "options": {"num_predict": 20, "repeat_penalty": 1.2, "temperature": 0.1}
+            }
+            """.formatted(prompt, base64Image);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("http://localhost:11434/api/generate"))
-                    .timeout(java.time.Duration.ofSeconds(60))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
                     .build();
 
             HttpResponse<String> response =
                     client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            String responseBody = response.body();
-            String processedContent = processResponse(responseBody, images);
-
-            // Return a BufferedReader wrapping the response
-            return new BufferedReader(new StringReader(processedContent));
+            return parse(response.body());
 
         } catch (Exception e) {
-            throw new RuntimeException("Ollama call failed", e);
+            throw new RuntimeException(e);
         }
     }
 
-    private String processResponse(String responseBody, Map<String, String> images) {
+    private String parse(String responseBody) {
         // Parse the JSON response and extract the "response" field
         try {
             JsonNode rootNode = mapper.readTree(responseBody);
             JsonNode responseNode = rootNode.get("response");
 
-            //llava3.2:11b accepts only 1 image in the request, so taking the first id to concatenate with the description is OK
-            Map.Entry<String, String> firstEntry = images.entrySet().iterator().next();
-            String id = firstEntry.getKey();
-
             if (responseNode != null && responseNode.isTextual()) {
                 String rawResponse = responseNode.asText();
-                // Process the raw response - for example, clean up any extra whitespace
-                return id + "," + rawResponse.trim() + "\n";
+                return rawResponse.trim() /*+ "\n"*/;
             }
         } catch (Exception e) {
             log.warn("Failed to parse Ollama response: {}. The original response will be returned", e.getMessage());
         }
 
         // Return original response if parsing fails
-        return responseBody + "\n";
+        return responseBody /*+ "\n"*/;
     }
 
 }

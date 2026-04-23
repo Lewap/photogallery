@@ -23,8 +23,17 @@ public class ImageTaggingController {
             @RequestParam("ids") List<String> ids
             ) {
 
-        service.tagImagesAsync(provider, ids);
+        service.tagImages(provider, ids);
 
+        return "redirect:/";
+    }
+
+    @GetMapping("/available-models")
+    public String tagImageBulk(
+            @RequestParam String provider
+    ) {
+
+        service.getLLMModels(provider);
         return "redirect:/";
     }
 

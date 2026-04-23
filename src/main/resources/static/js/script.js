@@ -58,12 +58,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         form.appendChild(input);
                     });
 
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'provider';
-                    //input.value = 'python-vision';
-                    input.value = 'ollama';
-                    form.appendChild(input);
+                    const providerSelect = document.getElementById('provider-select');
+                    const provider = providerSelect.value;
+                    const providerInput = document.createElement('input');
+                    providerInput.type = 'hidden';
+                    providerInput.name = 'provider';
+                    providerInput.value = provider;
+                    form.appendChild(providerInput);
                     document.body.appendChild(form);
                     form.submit();
                 }

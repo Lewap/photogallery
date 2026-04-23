@@ -2,7 +2,10 @@ package org.lewap.photogallery.llm.impl;
 
 import org.lewap.photogallery.llm.GenerateOptions;
 import org.lewap.photogallery.llm.LLMProvider;
+import org.lewap.photogallery.llm.ResultListener;
 import org.lewap.photogallery.util.FilePathParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -18,6 +20,8 @@ import java.util.Map;
 
 @Service("python-vision")
 public class PythonVisionProvider implements LLMProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(PythonVisionProvider.class);
 
     @Value("${llm.python.script}")
     private String script;
@@ -55,11 +59,13 @@ public class PythonVisionProvider implements LLMProvider {
     }
 
     @Override
-    public BufferedReader generate(
+    public void generate(
             String prompt,
             Map<String, String> images,
-            GenerateOptions options
+            GenerateOptions options,
+            ResultListener listener
     ) {
+        log.info("Python Vision tagging started");
         try {
 
             setScriptFromResource();
@@ -80,12 +86,22 @@ public class PythonVisionProvider implements LLMProvider {
 
             Process process = pb.start();
 
-            // Return a BufferedReader wrapping the process input stream
-            return new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8)
-            );
+            try (BufferedReader reader =
+                         new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String id = line.substring(0, line.indexOf(','));
+                    String result = line.substring(line.indexOf(',')+1);
+                    listener.onResult(id, result); // streamed result
+                }
+            }
+
+            process.waitFor();
+            listener.onComplete();
 
         } catch (Exception e) {
+            listener.onError(e);
             throw new RuntimeException("Python vision execution failed", e);
         }
     }
