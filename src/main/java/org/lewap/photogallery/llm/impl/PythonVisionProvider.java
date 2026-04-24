@@ -61,6 +61,7 @@ public class PythonVisionProvider implements LLMProvider {
     @Override
     public void generate(
             String prompt,
+            String model,
             Map<String, String> images,
             GenerateOptions options,
             ResultListener listener

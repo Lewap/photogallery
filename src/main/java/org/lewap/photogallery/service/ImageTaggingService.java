@@ -35,7 +35,7 @@ public class ImageTaggingService {
     private String prompt;
 
     @Async
-    public void /*CompletableFuture<Void>*/ tagImages(String providerName, List<String> ids) {
+    public void /*CompletableFuture<Void>*/ tagImages(String providerName, String model, List<String> ids) {
 
         LLMProvider provider = registry.get(providerName);
         GenerateOptions options = new GenerateOptions();
@@ -46,7 +46,7 @@ public class ImageTaggingService {
             photos.put(photoEntity.getId(), photoEntity.getPath());
         }
 
-        provider.generate(prompt, photos, options, new ResultListener() {
+        provider.generate(prompt, model, photos, options, new ResultListener() {
 
             @Override
             public void onResult(String id, String result) {

@@ -73,6 +73,9 @@ header h1 {
     margin-bottom: 30px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     text-align: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
 }
 
 .tag-section label {
@@ -85,6 +88,19 @@ header h1 {
     border: 1px solid #ddd;
     margin-right: 10px;
     background-color: white;
+}
+
+.tag-section select:disabled {
+    cursor: not-allowed;
+}
+
+.label-field-vertical {
+    display: flex;
+    flex-direction: column;
+}
+
+.label-field-vertical label {
+    margin-bottom: 10px;
 }
 
 .tag-section button {

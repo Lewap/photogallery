@@ -20,13 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update UI when selection changes
     function updateSelectedPhotos() {
         const selectedCount = document.querySelectorAll('.photo-checkbox:checked').length;
-
-        // Enable/disable the tag button based on selection
-        const tagButton = document.getElementById('tag-button');
-        if (tagButton) {
-            tagButton.disabled = selectedCount === 0;
-        }
-
     }
 
     // Get IDs of selected photos
@@ -65,6 +58,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     providerInput.name = 'provider';
                     providerInput.value = provider;
                     form.appendChild(providerInput);
+
+                    const modelSelect = document.getElementById('model-select');
+                    const model = modelSelect.value;
+                    const modelInput = document.createElement('input');
+                    modelInput.type = 'hidden';
+                    modelInput.name = 'model';
+                    modelInput.value = model;
+                    form.appendChild(modelInput);
+
                     document.body.appendChild(form);
                     form.submit();
                 }
@@ -73,5 +75,121 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    // Handle provider selection change to load available models
+    const providerSelect = document.getElementById('provider-select');
+    const modelSelect = document.getElementById('model-select');
+
+    if (providerSelect && modelSelect) {
+        // Initialize the model select state based on initial provider selection
+        updateModelSelectState();
+
+        providerSelect.addEventListener('change', function() {
+            updateModelSelectState();
+
+            const selectedProvider = this.value;
+
+            // Only fetch models if a valid provider is selected
+            if (selectedProvider && selectedProvider !== '') {
+                // Clear current options
+                modelSelect.innerHTML = '';
+
+                // Add loading option
+                const loadingOption = document.createElement('option');
+                loadingOption.textContent = 'Loading. ..';
+                loadingOption.disabled = true;
+                modelSelect.appendChild(loadingOption);
+
+                // Fetch available models
+                fetch(`/api/tagging/available-models?provider=${selectedProvider}-models`)
+                    .then(response => response.json())
+                    .then(models => {
+                        // Clear the loading option
+                        modelSelect.innerHTML = '';
+
+                        // Add default option
+                        const defaultOption = document.createElement('option');
+                        defaultOption.textContent = 'Select a model';
+                        defaultOption.value = '';
+                        defaultOption.disabled = true;
+                        defaultOption.selected = true;
+                        modelSelect.appendChild(defaultOption);
+
+                        // Add available models
+                        models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.textContent = model;
+                            option.value = model;
+                            modelSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching models:', error);
+                        // Clear the loading option and show error
+                        modelSelect.innerHTML = '';
+                        const errorOption = document.createElement('option');
+                        errorOption.textContent = 'Failed to load models';
+                        errorOption.disabled = true;
+                        modelSelect.appendChild(errorOption);
+                    });
+            }
+        });
+    }
+
+    // Helper function to update model select state based on provider selection
+    function updateModelSelectState() {
+        const providerSelect = document.getElementById('provider-select');
+        const modelSelect = document.getElementById('model-select');
+
+        if (providerSelect && modelSelect) {
+            const selectedProvider = providerSelect.value;
+
+            if (!selectedProvider || selectedProvider === '') {
+                // Disable model select and show placeholder text
+                modelSelect.disabled = true;
+                modelSelect.innerHTML = '<option>Select a provider first</option>';
+            } else {
+                // Enable model select
+                modelSelect.disabled = false;
+                // Clear existing options but keep the loading state
+                modelSelect.innerHTML = '';
+                const loadingOption = document.createElement('option');
+                loadingOption.textContent = 'Loading. ..';
+                loadingOption.disabled = true;
+                modelSelect.appendChild(loadingOption);
+            }
+        }
+    }
+
+    function updateTagButtonState() {
+        const tagButton = document.getElementById('tag-button');
+        const selectedCount = document.querySelectorAll('.photo-checkbox:checked').length;
+        const providerSelect = document.getElementById('provider-select');
+        const modelSelect = document.getElementById('model-select');
+
+        if (tagButton && providerSelect && modelSelect) {
+            // Check if a valid provider is selected (not default)
+            const providerSelected = providerSelect.value && providerSelect.value !== '';
+
+            // Check if a valid model is selected (not default)
+            const modelSelected = modelSelect.value && modelSelect.value !== '';
+
+            // Enable button only when all conditions are met
+            tagButton.disabled = selectedCount === 0 || !providerSelected || !modelSelected;
+        }
+    }
+
+    // Add event listeners to provider and model selects to update button state
+    if (providerSelect) {
+        providerSelect.addEventListener('change', updateTagButtonState);
+    }
+
+    if (modelSelect) {
+        modelSelect.addEventListener('change', updateTagButtonState);
+    }
+
+    // Also update button state when checkboxes change
+    document.querySelectorAll('.photo-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateTagButtonState);
+    });
 
 });

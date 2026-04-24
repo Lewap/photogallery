@@ -7,10 +7,6 @@
     <title>Photo Gallery</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script th:src="@{/js/script.js}"></script>
-    <script src="../static/js/script.js"></script>
-    <!--<script src="../../../../target/classes/static/js/script.js"></script>-->
-    <!--<script src="../static/js/script.js"></script>-->
-    <!--<link rel="stylesheet" href="../static/css/style.css">-->
 </head>
 <body>
 <div class="container">
@@ -27,16 +23,21 @@
         </div>
         <!-- New Tag button section -->
         <div class="tag-section">
-            <label for="provider-select">Tagging Provider</label>
-            <select id="provider-select">
-                <option value="ollama">Ollama</option>
-                <option value="python-vision">Python</option>
-            </select>
+            <div class="label-field-vertical">
+                <label for="provider-select">Tagging Provider</label>
+                <select id="provider-select">
+                    <option value="" selected>Select a provider</option>
+                    <option value="ollama">Ollama</option>
+                    <option value="python-vision">Python</option>
+                </select>
+            </div>
+            <div class="label-field-vertical">
+                <label for="model-select">Model</label>
+                <select id="model-select" disabled>
+                    <option>Select a provider first</option>
+                </select>
+            </div>
             <button id="tag-button" class="tag-btn" disabled>Tag</button>
-            <form th:action="@{/api/tagging/available-models}" method="get">
-                <input type="hidden" name="provider" value="ollama-models">
-                <button type="submit">Get Models</button>
-            </form>
         </div>
 
         <div th:if="${message}" class="message">

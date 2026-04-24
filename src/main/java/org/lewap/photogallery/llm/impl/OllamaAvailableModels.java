@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lewap.photogallery.llm.AvailableModels;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,6 +17,9 @@ public class OllamaAvailableModels implements AvailableModels {
 
     private static final Logger log = LoggerFactory.getLogger(OllamaAvailableModels.class);
 
+    @Value("${llm.ollama.url}")
+    private String ollamaUrl;
+
     @Override
     public List<String> getAvailableModels () {
         try {
@@ -23,7 +27,7 @@ public class OllamaAvailableModels implements AvailableModels {
             RestTemplate restTemplate = new RestTemplate();
             ObjectMapper objectMapper = new ObjectMapper();
 
-            String response = restTemplate.getForObject("http://localhost:11434/api/tags", String.class);
+            String response = restTemplate.getForObject(ollamaUrl + "/api/tags", String.class);
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode modelsNode = rootNode.get("models");
 

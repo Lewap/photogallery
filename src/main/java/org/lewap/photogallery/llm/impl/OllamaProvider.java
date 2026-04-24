@@ -7,6 +7,7 @@ import org.lewap.photogallery.llm.LLMProvider;
 import org.lewap.photogallery.llm.ResultListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -23,6 +24,9 @@ public class OllamaProvider implements LLMProvider {
 
     private static final Logger log = LoggerFactory.getLogger(OllamaProvider.class);
 
+    @Value("${llm.ollama.url}")
+    private String ollamaUrl;
+
     private final HttpClient client;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -31,8 +35,8 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public void generate(String prompt, Map<String, String> images, GenerateOptions options, ResultListener listener) {
-        log.info("Ollama tagging started");
+    public void generate(String prompt, String model, Map<String, String> images, GenerateOptions options, ResultListener listener) {
+        log.info("Ollama tagging started using model " + model);
         try {
 
             if (images != null && !images.isEmpty()) {
@@ -42,7 +46,7 @@ public class OllamaProvider implements LLMProvider {
                     String imagePath = entry.getValue();
                     byte[] imageBytes = Files.readAllBytes(Path.of(imagePath));
                     String base64Image = Base64.getEncoder().encodeToString(imageBytes);
-                    String result = tagSingle(base64Image, prompt); //blocking
+                    String result = tagSingle(base64Image, prompt, model); //blocking
                     listener.onResult(entry.getKey(), result);   // emit immediately
                 }
             }
@@ -52,20 +56,20 @@ public class OllamaProvider implements LLMProvider {
         }
     }
 
-    public String tagSingle(String base64Image, String prompt) {
+    public String tagSingle(String base64Image, String prompt, String model) {
         try {
             String body = """
             {
-              "model": "llama3.2-vision:11b",
+              "model": "%s",
               "prompt": "%s",
               "images": ["%s"],
               "stream": false,
               "options": {"num_predict": 20, "repeat_penalty": 1.2, "temperature": 0.1}
             }
-            """.formatted(prompt, base64Image);
+            """.formatted(model, prompt, base64Image);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:11434/api/generate"))
+                    .uri(URI.create(ollamaUrl + "/api/generate"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body))
                     .build();
