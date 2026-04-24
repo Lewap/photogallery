@@ -4,6 +4,7 @@ package org.lewap.photogallery.controller;
 import org.lewap.photogallery.api.exception.BadRequestException;
 import org.lewap.photogallery.api.exception.StorageException;
 import org.lewap.photogallery.model.Photo;
+import org.lewap.photogallery.service.ImageTaggingService;
 import org.lewap.photogallery.service.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,8 @@ import java.util.List;
 public class PhotoController {
     @Autowired
     private PhotoService photoService;
+    @Autowired
+    private ImageTaggingService imageTaggingService;
 
     @GetMapping("/")
     public String gallery(Model model) {

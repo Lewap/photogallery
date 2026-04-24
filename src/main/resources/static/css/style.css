@@ -65,6 +65,64 @@ header h1 {
     background-color: #2980b9;
 }
 
+/* New tag section styling */
+.tag-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.tag-section label {
+    margin-right: 10px;
+}
+
+.tag-section select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+    background-color: white;
+}
+
+.tag-section select:disabled {
+    cursor: not-allowed;
+}
+
+.label-field-vertical {
+    display: flex;
+    flex-direction: column;
+}
+
+.label-field-vertical label {
+    margin-bottom: 10px;
+}
+
+.tag-section button {
+    background-color: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.tag-section button:hover:not(:disabled) {
+    background-color: #2980b9;
+}
+
+.tag-section button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
 .message {
     background-color: #d4edda;
     color: #155724;
@@ -99,6 +157,67 @@ header h1 {
 
 .photo-card:hover {
     transform: translateY(-5px);
+}
+
+.photo-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 250px; /* Fixed height for consistent card layout */
+}
+
+.photo-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    opacity: 0;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+}
+
+.checkbox-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 2px solid #3498db;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.photo-checkbox:checked + .checkbox-label {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.photo-checkbox:checked + .checkbox-label::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Show checkbox when hovering OR when checked */
+.photo-card:hover .photo-checkbox,
+.photo-checkbox:checked {
+    opacity: 1;
+}
+
+.photo-card:hover .checkbox-label,
+.checkbox-label {
+    opacity: 1;
 }
 
 .photo-card img {
@@ -147,6 +266,21 @@ header h1 {
 }
 
 .delete-btn:hover {
+    background-color: #c0392b;
+}
+
+.tag-btn {
+    background-color: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.tag-btn:hover {
     background-color: #c0392b;
 }
 

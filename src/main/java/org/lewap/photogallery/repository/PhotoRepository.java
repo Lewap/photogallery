@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PhotoRepository extends JpaRepository<PhotoEntity, String> {
     List<PhotoEntity> findByIsMissingFalseOrIsMissingNull();
+    List<PhotoEntity> findByIdIn(List<String> ids);
 }

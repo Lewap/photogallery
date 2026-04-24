@@ -49,6 +49,10 @@ public class PhotoEntity {
         this.tags = tags;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -69,4 +73,17 @@ public class PhotoEntity {
         return thumbnailPath;
     }
 
+    @Override
+    public String toString() {
+        return "PhotoEntity{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", path='" + path + '\'' +
+                ", uploadTime=" + uploadTime +
+                ", size=" + size +
+                ", thumbnailPath='" + thumbnailPath + '\'' +
+                ", tags='" + tags + '\'' +
+                ", isMissing=" + isMissing +
+                '}';
+    }
 }
