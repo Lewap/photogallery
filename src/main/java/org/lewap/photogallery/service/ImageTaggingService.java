@@ -9,12 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.util.*;
-//import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ImageTaggingService {
@@ -35,7 +30,7 @@ public class ImageTaggingService {
     private String prompt;
 
     @Async
-    public void /*CompletableFuture<Void>*/ tagImages(String providerName, String model, List<String> ids) {
+    public void tagImages(String providerName, String model, List<String> ids) {
 
         LLMProvider provider = registry.get(providerName);
         GenerateOptions options = new GenerateOptions();
@@ -73,7 +68,6 @@ public class ImageTaggingService {
             }
         });
 
-        //return CompletableFuture.completedFuture(null);
     }
 
     public List<String> getLLMModels (String providerName) {

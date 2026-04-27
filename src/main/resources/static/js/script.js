@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedIds = getSelectedPhotoIds();
             if (selectedIds.length > 0) {
                 if (confirm(`Are you sure you want to tag ${selectedIds.length} photo(s)?`)) {
-                    // Create a form for batch deletion
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '/api/tagging/tag-selected';
@@ -78,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle provider selection change to load available models
     const providerSelect = document.getElementById('provider-select');
     const modelSelect = document.getElementById('model-select');
+    const searchPrompt = document.getElementById('search-input');
 
     if (providerSelect && modelSelect) {
         // Initialize the model select state based on initial provider selection
@@ -180,18 +180,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateSearchButtonState() {
         const searchButton = document.getElementById('search-button');
+        const searchPrompt = document.getElementById('search-input');
         const providerSelect = document.getElementById('provider-select');
         const modelSelect = document.getElementById('model-select');
 
-        if (searchButton && providerSelect && modelSelect) {
+        if (searchButton && providerSelect && modelSelect && searchPrompt) {
             // Check if a valid provider is selected (not default)
             const providerSelected = providerSelect.value && providerSelect.value !== '';
 
             // Check if a valid model is selected (not default)
             const modelSelected = modelSelect.value && modelSelect.value !== '';
 
+            const searchNotEmpty = searchPrompt.value && searchPrompt.value !== '';
+
             // Enable button only when all conditions are met
-            searchButton.disabled = !providerSelected || !modelSelected;
+            searchButton.disabled = !providerSelected || !modelSelected || !searchNotEmpty;
         }
     }
 
@@ -206,9 +209,49 @@ document.addEventListener('DOMContentLoaded', function() {
         modelSelect.addEventListener('change', updateSearchButtonState);
     }
 
+    if (searchPrompt) {
+        searchPrompt.addEventListener('input', updateSearchButtonState);
+        searchPrompt.addEventListener('change', updateSearchButtonState);
+    }
+
     // Also update button state when checkboxes change
     document.querySelectorAll('.photo-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', updateTagButtonState);
     });
+
+    const searchButton = document.getElementById('search-button');
+    if (searchButton) {
+        searchButton.addEventListener('click', function() {
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = '/api/search/search';
+
+            const providerSelect = document.getElementById('provider-select');
+            const provider = providerSelect.value;
+            const providerInput = document.createElement('input');
+            providerInput.type = 'hidden';
+            providerInput.name = 'provider';
+            providerInput.value = provider;
+            form.appendChild(providerInput);
+
+            const modelSelect = document.getElementById('model-select');
+            const model = modelSelect.value;
+            const modelInput = document.createElement('input');
+            modelInput.type = 'hidden';
+            modelInput.name = 'model';
+            modelInput.value = model;
+            form.appendChild(modelInput);
+
+            const searchPrompt = document.getElementById('search-input').value;
+            const searchInput = document.createElement('input');
+            searchInput.type = 'hidden';
+            searchInput.name = 'searchPrompt';
+            searchInput.value = searchPrompt;
+            form.appendChild(searchInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
 
 });
