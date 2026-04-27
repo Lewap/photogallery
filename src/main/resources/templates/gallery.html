@@ -37,7 +37,12 @@
                     <option>Select a provider first</option>
                 </select>
             </div>
-            <button id="tag-button" class="tag-btn" disabled>Tag</button>
+            <button id="tag-button" disabled>Tag</button>
+            <div class="search-section">
+                <label for="search-input">Search Photos</label>
+                <input type="text" id="search-input" placeholder="Enter search terms...">
+                <button id="search-button" disabled>Search</button>
+            </div>
         </div>
 
         <div th:if="${message}" class="message">

@@ -178,13 +178,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function updateSearchButtonState() {
+        const searchButton = document.getElementById('search-button');
+        const providerSelect = document.getElementById('provider-select');
+        const modelSelect = document.getElementById('model-select');
+
+        if (searchButton && providerSelect && modelSelect) {
+            // Check if a valid provider is selected (not default)
+            const providerSelected = providerSelect.value && providerSelect.value !== '';
+
+            // Check if a valid model is selected (not default)
+            const modelSelected = modelSelect.value && modelSelect.value !== '';
+
+            // Enable button only when all conditions are met
+            searchButton.disabled = !providerSelected || !modelSelected;
+        }
+    }
+
     // Add event listeners to provider and model selects to update button state
     if (providerSelect) {
         providerSelect.addEventListener('change', updateTagButtonState);
+        providerSelect.addEventListener('change', updateSearchButtonState);
     }
 
     if (modelSelect) {
         modelSelect.addEventListener('change', updateTagButtonState);
+        modelSelect.addEventListener('change', updateSearchButtonState);
     }
 
     // Also update button state when checkboxes change

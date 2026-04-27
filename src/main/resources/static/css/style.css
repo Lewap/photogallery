@@ -76,6 +76,29 @@ header h1 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
+    grid-template-areas:
+        "provider provider provider"
+        "model model model"
+        "tag tag tag"
+        "search search search";
+}
+
+.search-section {
+    grid-area: search;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+}
+
+.search-section input {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-top: 1px;
+    margin-right: 8px;
+    width: 100%;
+    max-width: 500px;
 }
 
 .tag-section label {
@@ -266,21 +289,6 @@ header h1 {
 }
 
 .delete-btn:hover {
-    background-color: #c0392b;
-}
-
-.tag-btn {
-    background-color: #e74c3c;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.3s;
-}
-
-.tag-btn:hover {
     background-color: #c0392b;
 }
 
