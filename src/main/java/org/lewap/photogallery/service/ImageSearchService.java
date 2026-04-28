@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -30,38 +32,13 @@ public class ImageSearchService {
         List<PhotoEntity> dbPhotos = photoRepository.findAll();
         LLMProvider llmProvider = llmProviderRegistry.get(provider);
         GenerateOptions options = new GenerateOptions();
-
-        log.info("searchPrompt = " + searchPrompt);
-
+        Map<String, String> photoTags = new HashMap<>();
         for (PhotoEntity photoEntity : dbPhotos) {
-            String tags = photoEntity.getTags();
-            String id = photoEntity.getId();
-            log.info("photoID = " + id + " TAGS = " + tags);
-            String prompt = "does this text: '" + photoEntity.getTags() + "' relate to '" + searchPrompt + "'? Rules: respond YES or NO, response must not be empty";
-
-            if (tags != null && !tags.isEmpty() && !tags.equals("null")) {
-                llmProvider.generate(prompt, model, null, options, new ResultListener() {
-
-                    @Override
-                    public void onResult(String id, String result) {
-                        log.info("prompt sent to the model: " + prompt);
-                        log.info("Id = " + id + " RESPONSE = " + result);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        log.info("Search complete");
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        log.error("Error encountered while tagging image", e);
-                    }
-                });
-            } else {
-                log.info("no tags for photo: " + id);
-            }
+            photoTags.put(photoEntity.getId(), photoEntity.getTags());
         }
+
+        //if (tags != null && !tags.isEmpty() && !tags.equals("null")) {
+        llmProvider.generateSearchResponse(searchPrompt, model, photoTags, options);
 
     }
 

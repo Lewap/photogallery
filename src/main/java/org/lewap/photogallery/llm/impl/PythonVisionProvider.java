@@ -59,7 +59,17 @@ public class PythonVisionProvider implements LLMProvider {
     }
 
     @Override
-    public void generate(
+    public void generateSearchResponse (
+            String searchPrompt,
+            String model,
+            Map<String, String> photoTags,
+            GenerateOptions options
+    ) {
+        log.info("Search for the PythonVisionProvider not yet implemented");
+    }
+
+    @Override
+    public void generateImageTags(
             String prompt,
             String model,
             Map<String, String> images,

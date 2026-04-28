@@ -35,8 +35,49 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public void generate(String prompt, String model, Map<String, String> images, GenerateOptions options, ResultListener listener) {
-        log.info("Ollama task started using model " + model);
+    public void generateSearchResponse(String searchPrompt,
+                                       String model,
+                                       Map<String, String> photoTags,
+                                       GenerateOptions options) {
+
+        log.info("Ollama searching started using model " + model);
+
+        for (Map.Entry<String, String> entry : photoTags.entrySet()) {
+
+            String prompt = "does this text '" + entry.getValue() + "' relate to this one: '" + searchPrompt + "'? RULES: respond YES or NO, no empty response, no other text";
+
+            try {
+                String body = """
+                        {
+                          "model": "%s",
+                          "prompt": "%s",
+                          "stream": false,
+                          "options": {"num_predict": 1, "repeat_penalty": 1.2, "temperature": 0}
+                        }
+                        """.formatted(model, prompt);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(ollamaUrl + "/api/generate"))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                HttpResponse<String> response =
+                        client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                log.info("SEARCH id = " + entry.getKey() + " search result: " + parse(response.body()));
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+    }
+
+    @Override
+    public void generateImageTags(String prompt, String model, Map<String, String> images, GenerateOptions options, ResultListener listener) {
+        log.info("Ollama tagging started using model " + model);
         try {
 
             if (images != null && !images.isEmpty()) {
@@ -49,40 +90,10 @@ public class OllamaProvider implements LLMProvider {
                     String result = tagSingle(base64Image, prompt, model); //blocking
                     listener.onResult(entry.getKey(), result);   // emit immediately
                 }
-            } else {
-                String result = getResponse(prompt, model);
-                listener.onResult("1", result);
             }
             listener.onComplete();
         } catch (Exception e) {
             listener.onError(e);
-        }
-    }
-
-    public String getResponse(String prompt, String model) {
-        try {
-            String body = """
-            {
-              "model": "%s",
-              "prompt": "%s",
-              "stream": false,
-              "options": {"num_predict": 1, "repeat_penalty": 1.2, "temperature": 0}
-            }
-            """.formatted(model, prompt);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ollamaUrl + "/api/generate"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
-
-            HttpResponse<String> response =
-                    client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            return parse(response.body());
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 

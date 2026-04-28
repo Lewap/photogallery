@@ -43,7 +43,7 @@ public class ImageTaggingService {
             photos.put(photoEntity.getId(), photoEntity.getPath());
         }
 
-        provider.generate(prompt, model, photos, options, new ResultListener() {
+        provider.generateImageTags(prompt, model, photos, options, new ResultListener() {
 
             @Override
             public void onResult(String id, String result) {
