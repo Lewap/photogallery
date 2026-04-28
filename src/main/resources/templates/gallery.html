@@ -65,9 +65,10 @@
                     </a>
                 </div>
                 <div class="photo-info">
-                    <p class="photo-name" th:text="${photo.name}"></p>
+                    <p class="photo-tags" th:text="${photo.tags}"></p>
+                    <!--<p class="photo-name" th:text="${photo.name}"></p>
                     <p class="photo-date" th:text="${#temporals.format(photo.uploadTime, 'yyyy-MM-dd HH:mm')}"></p>
-                    <p class="photo-size" th:text="${#numbers.formatDecimal(photo.size, 0, 2)} + ' bytes'"></p>
+                    <p class="photo-size" th:text="${#numbers.formatDecimal(photo.size, 0, 2)} + ' bytes'"></p>-->
                     <form th:action="@{/delete/{id}(id=${photo.id})}" method="post" class="delete-form">
                         <button type="submit" class="delete-btn">Delete</button>
                     </form>

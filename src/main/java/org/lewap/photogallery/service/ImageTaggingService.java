@@ -1,5 +1,7 @@
 package org.lewap.photogallery.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lewap.photogallery.llm.*;
 import org.lewap.photogallery.model.PhotoEntity;
 import org.lewap.photogallery.repository.PhotoRepository;
@@ -48,9 +50,13 @@ public class ImageTaggingService {
                 Optional<PhotoEntity> photoToSaveOpt = photoEntities.stream().filter(i -> id.equals(i.getId())).findAny();
                 if (photoToSaveOpt.isPresent()) {
                     PhotoEntity photoToSave = photoToSaveOpt.get();
-                    photoToSave.setTags(result);
-                    photoRepository.save(photoToSave);
-                    log.info("Tags persisted for id = " + photoToSave.getId() + " TAGS = " + result);
+                    if (!isJsonTagPresent(result,"error") && result != null && !result.isEmpty() && !result.equals("null")) {
+                        photoToSave.setTags(result);
+                        photoRepository.save(photoToSave);
+                        log.info("Tags persisted for id = " + photoToSave.getId() + " TAGS = " + result);
+                    } else {
+                        log.warn("Tags NOT persisted (error or empty) for id = " + photoToSave.getId() + " TAGS = " + result);
+                    }
                 } else {
                     log.warn("Photo not found on storage " + id);
                 }
@@ -75,6 +81,24 @@ public class ImageTaggingService {
         AvailableModels provider = availableModelsRegistry.get(providerName);
         return provider.getAvailableModels();
 
+    }
+
+    private boolean isJsonTagPresent(String json, String tag) {
+        // Parse the JSON response and extract the "response" field
+        boolean res = false;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            JsonNode responseNode = rootNode.get(tag);
+
+            if (responseNode != null && responseNode.isTextual()) {
+                res = true;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse json " + e.getMessage());
+        }
+
+        return res;
     }
 
 }

@@ -34,25 +34,33 @@ public class ImageSearchService {
         log.info("searchPrompt = " + searchPrompt);
 
         for (PhotoEntity photoEntity : dbPhotos) {
-            log.info("photoID = " + photoEntity.getId() + " TAGS = " + photoEntity.getTags());
-            String prompt = "does this description: '" + photoEntity.getTags() + "' match those: '" + searchPrompt + "' criteria in some way? Rules: respond YES or NO, response must not be empty";
-            llmProvider.generate(prompt, model, null, options, new ResultListener() {
+            String tags = photoEntity.getTags();
+            String id = photoEntity.getId();
+            log.info("photoID = " + id + " TAGS = " + tags);
+            String prompt = "does this text: '" + photoEntity.getTags() + "' relate to '" + searchPrompt + "'? Rules: respond YES or NO, response must not be empty";
 
-                @Override
-                public void onResult(String id, String result) {
-                    log.info("Id = " + id + " RESPONSE = " + result);
-                }
+            if (tags != null && !tags.isEmpty() && !tags.equals("null")) {
+                llmProvider.generate(prompt, model, null, options, new ResultListener() {
 
-                @Override
-                public void onComplete() {
-                    log.info("Search complete");
-                }
+                    @Override
+                    public void onResult(String id, String result) {
+                        log.info("prompt sent to the model: " + prompt);
+                        log.info("Id = " + id + " RESPONSE = " + result);
+                    }
 
-                @Override
-                public void onError(Exception e) {
-                    log.error("Error encountered while tagging image", e);
-                }
-            });
+                    @Override
+                    public void onComplete() {
+                        log.info("Search complete");
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        log.error("Error encountered while tagging image", e);
+                    }
+                });
+            } else {
+                log.info("no tags for photo: " + id);
+            }
         }
 
     }

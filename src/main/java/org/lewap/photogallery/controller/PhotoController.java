@@ -6,6 +6,8 @@ import org.lewap.photogallery.api.exception.StorageException;
 import org.lewap.photogallery.model.Photo;
 import org.lewap.photogallery.service.ImageTaggingService;
 import org.lewap.photogallery.service.PhotoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +20,9 @@ import java.util.List;
 
 @Controller
 public class PhotoController {
+
+    private static final Logger log = LoggerFactory.getLogger(PhotoController.class);
+
     @Autowired
     private PhotoService photoService;
     @Autowired
@@ -26,6 +31,9 @@ public class PhotoController {
     @GetMapping("/")
     public String gallery(Model model) {
         List<Photo> photos = photoService.getAllPhotos();
+        for (Photo photo : photos) {
+            log.info("PHOTO CONTROLLER: id = " + photo.getId() + " tags = " + photo.getTags());
+        }
         model.addAttribute("photos", photos);
         model.addAttribute("uploadDir", photoService.getUploadDir());
         model.addAttribute("thumbnailDir", photoService.getThumbnailDir());

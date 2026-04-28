@@ -31,7 +31,7 @@ public class PhotoEntity {
 
     public Photo toPhoto () {
 
-        return new Photo(
+        Photo photo =  new Photo(
                 this.id,
                 this.name,
                 this.path,
@@ -39,6 +39,8 @@ public class PhotoEntity {
                 this.size,
                 this.thumbnailPath
         );
+        photo.setTags(this.tags);
+        return photo;
     }
 
     public String getTags() {
