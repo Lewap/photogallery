@@ -11,7 +11,7 @@ logging.getLogger().setLevel(logging.ERROR)
 
 # --- Check arguments ---
 if len(sys.argv) < 3:
-    print("Usage: python smolvlm_cli.py <id1> <image1.jpg> [id2] [image2.jpg] ... [prompt]")
+    print("Usage: python smolvlm_vision_cli.py <id1> <image1.jpg> [id2] [image2.jpg] ... [prompt]")
     sys.exit(1)
 
 # The last argument is always the prompt
@@ -33,7 +33,12 @@ for i in range(1, len(sys.argv) - 1, 2):
 model_name = "HuggingFaceTB/SmolVLM-500M-Instruct"
 
 # --- Check for GPU ---
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif hasattr(torch, "xpu") and torch.xpu.is_available():
+    device = torch.device("xpu")
+else:
+    device = torch.device("cpu")
 #print(f"Using device: {device}")
 
 # --- Load model ---

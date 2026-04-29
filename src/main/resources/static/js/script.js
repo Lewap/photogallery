@@ -18,9 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Update UI when selection changes
-    function updateSelectedPhotos() {
-        const selectedCount = document.querySelectorAll('.photo-checkbox:checked').length;
-    }
+    //function updateSelectedPhotos() {
+    //    const selectedCount = document.querySelectorAll('.photo-checkbox:checked').length;
+    //}
 
     // Get IDs of selected photos
     function getSelectedPhotoIds() {
@@ -253,5 +253,27 @@ document.addEventListener('DOMContentLoaded', function() {
             form.submit();
         });
     }
+
+    function checkFilterStatus() {
+        fetch('/api/search/is-filter-active')
+            .then(response => response.text())
+            .then(data => {
+                const clearButton = document.getElementById('clear-filter-button');
+                if (clearButton) {
+                    // Enable button if there are filtered results
+                    clearButton.disabled = data === 'no';
+                }
+            })
+            .catch(error => {
+                console.error('Error checking filter status:', error);
+                const clearButton = document.getElementById('clear-filter-button');
+                if (clearButton) {
+                    clearButton.disabled = true;
+                }
+            });
+    }
+
+    // Call checkFilterStatus when page loads
+    checkFilterStatus();
 
 });

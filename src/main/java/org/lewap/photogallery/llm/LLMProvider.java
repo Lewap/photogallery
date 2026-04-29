@@ -1,5 +1,6 @@
 package org.lewap.photogallery.llm;
 
+import java.util.List;
 import java.util.Map;
 
 public interface LLMProvider {
@@ -10,9 +11,9 @@ public interface LLMProvider {
                             GenerateOptions options,
                             ResultListener listener);
 
-    void generateSearchResponse(String searchPrompt,
-                           String model,
-                           Map<String, String> photoTags,
-                           GenerateOptions options);
+    List<String> generateSearchResponse(String searchPrompt,
+                                        String model,
+                                        Map<String, String> photoTags,
+                                        GenerateOptions options);
 
 }

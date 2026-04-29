@@ -42,6 +42,9 @@
                 <label for="search-input">Search Photos</label>
                 <input type="text" id="search-input" placeholder="Enter search terms...">
                 <button id="search-button" disabled>Search</button>
+                <form th:action="@{/api/search/clear}" method="post" >
+                    <button id="clear-filter-button" disabled>Clear search</button>
+                </form>
             </div>
         </div>
 

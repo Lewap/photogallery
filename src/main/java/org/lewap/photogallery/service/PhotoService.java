@@ -154,6 +154,12 @@ public class PhotoService {
                 .toList();
     }
 
+    public List<PhotoEntity> getAllPhotoEntities() {
+
+        syncWithFilesystem();
+        return photoRepository.findByIsMissingFalseOrIsMissingNull();
+    }
+
     public Photo uploadPhoto(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return null;

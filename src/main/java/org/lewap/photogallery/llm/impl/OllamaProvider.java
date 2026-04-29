@@ -16,7 +16,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 @Service("ollama")
@@ -35,12 +37,14 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public void generateSearchResponse(String searchPrompt,
-                                       String model,
-                                       Map<String, String> photoTags,
-                                       GenerateOptions options) {
+    public List<String> generateSearchResponse(String searchPrompt,
+                                               String model,
+                                               Map<String, String> photoTags,
+                                               GenerateOptions options) {
 
         log.info("Ollama searching started using model " + model);
+
+        List<String> res = new ArrayList<>();
 
         for (Map.Entry<String, String> entry : photoTags.entrySet()) {
 
@@ -65,13 +69,20 @@ public class OllamaProvider implements LLMProvider {
                 HttpResponse<String> response =
                         client.send(request, HttpResponse.BodyHandlers.ofString());
 
-                log.info("SEARCH id = " + entry.getKey() + " search result: " + parse(response.body()));
+                String LLMResponse = parse(response.body());
+                String photoID = entry.getKey();
+                log.info("SEARCH id = " + photoID + " search result: " + LLMResponse);
+                if ("Y".equalsIgnoreCase(LLMResponse) || "YES".equalsIgnoreCase(LLMResponse)) {
+                    res.add(photoID);
+                }
 
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
         }
+
+        return res;
 
     }
 

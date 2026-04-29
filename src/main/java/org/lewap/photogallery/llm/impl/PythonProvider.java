@@ -16,22 +16,27 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service("python-vision")
-public class PythonVisionProvider implements LLMProvider {
+public class PythonProvider implements LLMProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(PythonVisionProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(PythonProvider.class);
 
-    @Value("${llm.python.script}")
-    private String script;
+    @Value("${llm.python.vision.script}")
+    private String visionScript;
+
+    @Value("${llm.python.text.script}")
+    private String textScript;
 
     @Value("${llm.python.executable}")
     private String pythonExecutable;
 
     private Path scriptFromResource;
 
-    public void setScriptFromResource() {
+    public void setScriptFromResource(String script) {
         try {
 
             InputStream inputStream = getClass().getClassLoader()
@@ -42,14 +47,14 @@ public class PythonVisionProvider implements LLMProvider {
             }
 
             // Create temporary file from the resource
-            scriptFromResource = createTempScriptFromResource(inputStream);
+            scriptFromResource = createTempScriptFromResource(inputStream, script);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to set temp script path", e);
         }
     }
 
-    private Path createTempScriptFromResource(InputStream inputStream) throws IOException {
+    private Path createTempScriptFromResource(InputStream inputStream, String script) throws IOException {
 
         FilePathParser filePathParser = new FilePathParser(script);
         Path tempFile = Files.createTempFile(filePathParser.getFileNameWithoutExtension(), filePathParser.getFileExtension());
@@ -59,13 +64,14 @@ public class PythonVisionProvider implements LLMProvider {
     }
 
     @Override
-    public void generateSearchResponse (
+    public List<String> generateSearchResponse (
             String searchPrompt,
             String model,
             Map<String, String> photoTags,
             GenerateOptions options
     ) {
-        log.info("Search for the PythonVisionProvider not yet implemented");
+        log.info("Search for the PythonProvider not yet implemented");
+        return new ArrayList<>();
     }
 
     @Override
@@ -79,7 +85,7 @@ public class PythonVisionProvider implements LLMProvider {
         log.info("Python Vision tagging started");
         try {
 
-            setScriptFromResource();
+            setScriptFromResource(visionScript);
 
             ProcessBuilder pb = new ProcessBuilder();
             pb.command(pythonExecutable, scriptFromResource.toString());
