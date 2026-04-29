@@ -33,7 +33,12 @@ for i in range(1, len(sys.argv) - 1, 2):
 model_name = "HuggingFaceTB/SmolVLM-500M-Instruct"
 
 # --- Check for GPU ---
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif hasattr(torch, "xpu") and torch.xpu.is_available():
+    device = torch.device("xpu")
+else:
+    device = torch.device("cpu")
 #print(f"Using device: {device}")
 
 # --- Load model ---
