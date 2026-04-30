@@ -70,8 +70,47 @@ public class PythonProvider implements LLMProvider {
             Map<String, String> photoTags,
             GenerateOptions options
     ) {
-        log.info("Search for the PythonProvider not yet implemented");
-        return new ArrayList<>();
+        log.info("Python image search started");
+        List<String> res = new ArrayList<>();
+        try {
+
+            setScriptFromResource(textScript);
+
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command(pythonExecutable, scriptFromResource.toString());
+
+            for (Map.Entry<String, String> entry : photoTags.entrySet()) {
+                pb.command().add(entry.getKey());
+                String prompt = "does this description '" + entry.getValue() + "' contain '" + searchPrompt + "'? RULES: respond YES or NO, no empty response, no other text";
+                pb.command().add(prompt);
+            }
+
+            // Merge stderr into stdout for easier debugging
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            try (BufferedReader reader =
+                         new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String id = line.substring(0, line.indexOf(','));
+                    String result = line.substring(line.indexOf(',')+1);
+                    log.info("python response id " + id + " res = " + result);
+                    if (result.toLowerCase().contains("y")) {
+                        res.add(id);
+                    }
+                }
+            }
+
+            process.waitFor();
+            log.info("Python search done");
+
+        } catch (Exception e) {
+            log.warn("Python image search failed", e);
+        }
+        return res;
     }
 
     @Override
@@ -116,10 +155,12 @@ public class PythonProvider implements LLMProvider {
 
             process.waitFor();
             listener.onComplete();
+            log.info("Python tagging done");
 
         } catch (Exception e) {
+            log.warn("Python vision execution failed", e);
             listener.onError(e);
-            throw new RuntimeException("Python vision execution failed", e);
+            //throw new RuntimeException("Python vision execution failed", e);
         }
     }
 }
