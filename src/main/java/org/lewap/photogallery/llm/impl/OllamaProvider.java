@@ -16,7 +16,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 @Service("ollama")
@@ -35,7 +37,57 @@ public class OllamaProvider implements LLMProvider {
     }
 
     @Override
-    public void generate(String prompt, String model, Map<String, String> images, GenerateOptions options, ResultListener listener) {
+    public List<String> generateSearchResponse(String searchPrompt,
+                                               String model,
+                                               Map<String, String> photoTags,
+                                               GenerateOptions options) {
+
+        log.info("Ollama searching started using model " + model);
+
+        List<String> res = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : photoTags.entrySet()) {
+
+            String prompt = "does this text '" + entry.getValue() + "' relate to this one: '" + searchPrompt + "'? RULES: respond YES or NO, no empty response, no other text";
+
+            try {
+                String body = """
+                        {
+                          "model": "%s",
+                          "prompt": "%s",
+                          "stream": false,
+                          "options": {"num_predict": 1, "repeat_penalty": 1.2, "temperature": 0}
+                        }
+                        """.formatted(model, prompt);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(ollamaUrl + "/api/generate"))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                HttpResponse<String> response =
+                        client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                String LLMResponse = parse(response.body());
+                String photoID = entry.getKey();
+                log.info("SEARCH id = " + photoID + " search result: " + LLMResponse);
+                if ("Y".equalsIgnoreCase(LLMResponse) || "YES".equalsIgnoreCase(LLMResponse)) {
+                    res.add(photoID);
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        return res;
+
+    }
+
+    @Override
+    public void generateImageTags(String prompt, String model, Map<String, String> images, GenerateOptions options, ResultListener listener) {
         log.info("Ollama tagging started using model " + model);
         try {
 

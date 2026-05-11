@@ -16,22 +16,27 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service("python-vision")
-public class PythonVisionProvider implements LLMProvider {
+public class PythonProvider implements LLMProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(PythonVisionProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(PythonProvider.class);
 
-    @Value("${llm.python.script}")
-    private String script;
+    @Value("${llm.python.vision.script}")
+    private String visionScript;
+
+    @Value("${llm.python.text.script}")
+    private String textScript;
 
     @Value("${llm.python.executable}")
     private String pythonExecutable;
 
     private Path scriptFromResource;
 
-    public void setScriptFromResource() {
+    public void setScriptFromResource(String script) {
         try {
 
             InputStream inputStream = getClass().getClassLoader()
@@ -42,14 +47,14 @@ public class PythonVisionProvider implements LLMProvider {
             }
 
             // Create temporary file from the resource
-            scriptFromResource = createTempScriptFromResource(inputStream);
+            scriptFromResource = createTempScriptFromResource(inputStream, script);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to set temp script path", e);
         }
     }
 
-    private Path createTempScriptFromResource(InputStream inputStream) throws IOException {
+    private Path createTempScriptFromResource(InputStream inputStream, String script) throws IOException {
 
         FilePathParser filePathParser = new FilePathParser(script);
         Path tempFile = Files.createTempFile(filePathParser.getFileNameWithoutExtension(), filePathParser.getFileExtension());
@@ -59,7 +64,57 @@ public class PythonVisionProvider implements LLMProvider {
     }
 
     @Override
-    public void generate(
+    public List<String> generateSearchResponse (
+            String searchPrompt,
+            String model,
+            Map<String, String> photoTags,
+            GenerateOptions options
+    ) {
+        log.info("Python image search started");
+        List<String> res = new ArrayList<>();
+        try {
+
+            setScriptFromResource(textScript);
+
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command(pythonExecutable, "-u", scriptFromResource.toString());
+
+            for (Map.Entry<String, String> entry : photoTags.entrySet()) {
+                pb.command().add(entry.getKey());
+                String prompt = "does this description '" + entry.getValue() + "' contain '" + searchPrompt + "'? RULES: respond YES or NO, no empty response, no other text";
+                pb.command().add(prompt);
+            }
+
+            // Merge stderr into stdout for easier debugging
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            try (BufferedReader reader =
+                         new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String id = line.substring(0, line.indexOf(','));
+                    String result = line.substring(line.indexOf(',')+1);
+                    log.info("python response id " + id + " res = " + result);
+                    if (result.toLowerCase().contains("y")) {
+                        res.add(id);
+                    }
+                }
+            }
+
+            process.waitFor();
+            log.info("Python search done");
+
+        } catch (Exception e) {
+            log.warn("Python image search failed", e);
+        }
+        return res;
+    }
+
+    @Override
+    public void generateImageTags(
             String prompt,
             String model,
             Map<String, String> images,
@@ -69,10 +124,10 @@ public class PythonVisionProvider implements LLMProvider {
         log.info("Python Vision tagging started");
         try {
 
-            setScriptFromResource();
+            setScriptFromResource(visionScript);
 
             ProcessBuilder pb = new ProcessBuilder();
-            pb.command(pythonExecutable, scriptFromResource.toString());
+            pb.command(pythonExecutable, "-u", scriptFromResource.toString());
 
             for (Map.Entry<String, String> entry : images.entrySet()) {
                 pb.command().add(entry.getKey());
@@ -100,10 +155,12 @@ public class PythonVisionProvider implements LLMProvider {
 
             process.waitFor();
             listener.onComplete();
+            log.info("Python tagging done");
 
         } catch (Exception e) {
+            log.warn("Python vision execution failed", e);
             listener.onError(e);
-            throw new RuntimeException("Python vision execution failed", e);
+            //throw new RuntimeException("Python vision execution failed", e);
         }
     }
 }

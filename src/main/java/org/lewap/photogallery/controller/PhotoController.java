@@ -4,9 +4,10 @@ package org.lewap.photogallery.controller;
 import org.lewap.photogallery.api.exception.BadRequestException;
 import org.lewap.photogallery.api.exception.StorageException;
 import org.lewap.photogallery.model.Photo;
-import org.lewap.photogallery.service.ImageTaggingService;
+import org.lewap.photogallery.service.ImageSearchService;
 import org.lewap.photogallery.service.PhotoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,14 +19,23 @@ import java.util.List;
 
 @Controller
 public class PhotoController {
-    @Autowired
-    private PhotoService photoService;
-    @Autowired
-    private ImageTaggingService imageTaggingService;
+
+    private static final Logger log = LoggerFactory.getLogger(PhotoController.class);
+
+    private final PhotoService photoService;
+    private final ImageSearchService imageSearchService;
+
+    PhotoController (PhotoService photoService, ImageSearchService imageSearchService) {
+        this.photoService = photoService;
+        this.imageSearchService = imageSearchService;
+    }
 
     @GetMapping("/")
     public String gallery(Model model) {
         List<Photo> photos = photoService.getAllPhotos();
+        List<String> filteredPhotoIds = imageSearchService.getFilteredPhotoIds();
+        if (filteredPhotoIds != null && !filteredPhotoIds.isEmpty())
+            photos = photos.stream().filter(p -> filteredPhotoIds.contains(p.getId())).toList();
         model.addAttribute("photos", photos);
         model.addAttribute("uploadDir", photoService.getUploadDir());
         model.addAttribute("thumbnailDir", photoService.getThumbnailDir());
