@@ -96,10 +96,10 @@ for i, (image_path, id_arg) in enumerate(zip(image_paths, ids)):
             res = decoded[idx + len(keyword):].strip()
 
         #results.append(f"{id_arg},{res}")
-        print(f"{id_arg},{res}")
+        print(f"{id_arg},{res}", flush=True)
     except Exception as e:
         #results.append(f"Error processing {image_path}: {str(e)}")
-        print(f"Error processing {image_path}: {str(e)}")
+        print(f"Error processing {image_path}: {str(e)}", flush=True)
 
 # Print all results
 #for result in results:

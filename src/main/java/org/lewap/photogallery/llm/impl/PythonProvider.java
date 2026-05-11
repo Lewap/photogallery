@@ -77,7 +77,7 @@ public class PythonProvider implements LLMProvider {
             setScriptFromResource(textScript);
 
             ProcessBuilder pb = new ProcessBuilder();
-            pb.command(pythonExecutable, scriptFromResource.toString());
+            pb.command(pythonExecutable, "-u", scriptFromResource.toString());
 
             for (Map.Entry<String, String> entry : photoTags.entrySet()) {
                 pb.command().add(entry.getKey());
@@ -127,7 +127,7 @@ public class PythonProvider implements LLMProvider {
             setScriptFromResource(visionScript);
 
             ProcessBuilder pb = new ProcessBuilder();
-            pb.command(pythonExecutable, scriptFromResource.toString());
+            pb.command(pythonExecutable, "-u", scriptFromResource.toString());
 
             for (Map.Entry<String, String> entry : images.entrySet()) {
                 pb.command().add(entry.getKey());
