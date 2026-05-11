@@ -30,6 +30,17 @@ public class ImageTaggingController {
         return "redirect:/";
     }
 
+    @PostMapping("/complement-tags")
+    public String complementTags(
+            @RequestParam String provider,
+            @RequestParam String model
+    ) {
+
+        service.complementTags(provider, model);
+
+        return "redirect:/";
+    }
+
     @GetMapping("/available-models")
     @ResponseBody
     public ResponseEntity<List<String>> getAvailableModels(@RequestParam String provider) {

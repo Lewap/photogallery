@@ -76,6 +76,21 @@ public class ImageTaggingService {
 
     }
 
+    public void complementTags (String providerName, String model) {
+        log.info("Complementing tags");
+        List<String> ids = new ArrayList<>();
+        List<PhotoEntity> photoEntities = photoRepository.findByTagsIsNull();
+        if (!photoEntities.isEmpty()) {
+            for (PhotoEntity photoEntity : photoEntities) {
+                ids.add(photoEntity.getId());
+            }
+            tagImages(providerName, model, ids);
+        } else {
+            log.info("No photos with empty tags found - not complementing");
+        }
+
+    }
+
     public List<String> getLLMModels (String providerName) {
 
         AvailableModels provider = availableModelsRegistry.get(providerName);

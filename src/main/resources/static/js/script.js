@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 photoCard.style.backgroundColor = '';
             }
-            updateSelectedPhotos();
+            //updateSelectedPhotos();
         });
     });
 
@@ -202,11 +202,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (providerSelect) {
         providerSelect.addEventListener('change', updateTagButtonState);
         providerSelect.addEventListener('change', updateSearchButtonState);
+        providerSelect.addEventListener('change', updateComplementTagsButtonState);
     }
 
     if (modelSelect) {
         modelSelect.addEventListener('change', updateTagButtonState);
         modelSelect.addEventListener('change', updateSearchButtonState);
+        modelSelect.addEventListener('change', updateComplementTagsButtonState);
     }
 
     if (searchPrompt) {
@@ -275,5 +277,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call checkFilterStatus when page loads
     checkFilterStatus();
+
+    const selectAllBtn = document.getElementById("select-all-button");
+    //const checkboxes = document.querySelectorAll(".photo-checkbox");
+
+    function updateSelectButtonText() {
+        const anyChecked = [...checkboxes].some(cb => cb.checked);
+        selectAllBtn.textContent = anyChecked ? "Deselect All" : "Select All";
+    }
+
+    selectAllBtn.addEventListener("click", () => {
+        const anyChecked = [...checkboxes].some(cb => cb.checked);
+
+        checkboxes.forEach(cb => {
+            cb.checked = !anyChecked;
+
+            // Trigger normal checkbox logic
+            cb.dispatchEvent(new Event('change'));
+        });
+
+        updateSelectButtonText();
+    });
+
+    // Update button text whenever user manually checks/unchecks photos
+    checkboxes.forEach(cb => {
+        cb.addEventListener("change", updateSelectButtonText);
+    });
+
+// Initialize correct text on page load
+    updateSelectButtonText();
+
+    function updateComplementTagsButtonState() {
+        const complementTagsBtn = document.getElementById('complement-tags');
+        const providerSelect = document.getElementById('provider-select');
+        const modelSelect = document.getElementById('model-select');
+
+        if (complementTagsBtn && providerSelect && modelSelect) {
+            // Check if a valid provider is selected (not default)
+            const providerSelected = providerSelect.value && providerSelect.value !== '';
+
+            // Check if a valid model is selected (not default)
+            const modelSelected = modelSelect.value && modelSelect.value !== '';
+
+            // Enable button only when all conditions are met
+            complementTagsBtn.disabled = !providerSelected || !modelSelected;
+        }
+    }
 
 });

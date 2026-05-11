@@ -76,10 +76,11 @@ header h1 {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
     grid-template-areas:
-        "provider provider provider"
-        "model model model"
-        "tag tag tag"
-        "search search search";
+        "provider provider provider provider"
+        "model model model model"
+        "tag tag tag tag"
+        "complement complement complement complement"
+        "search search search search";
 }
 
 .search-section {

@@ -38,6 +38,7 @@
                 </select>
             </div>
             <button id="tag-button" disabled>Tag</button>
+            <button id="complement-tags" disabled>Complement tags</button>
             <div class="search-section">
                 <label for="search-input">Search Photos</label>
                 <input type="text" id="search-input" placeholder="Enter search terms...">
@@ -45,6 +46,7 @@
                 <form th:action="@{/api/search/clear}" method="post" >
                     <button id="clear-filter-button" disabled>Clear search</button>
                 </form>
+                <button id="select-all-button">Select All</button>
             </div>
         </div>
 
