@@ -328,3 +328,31 @@ header h1 {
     display: block;
     cursor: pointer;
 }
+
+#loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.spinner {
+    border: 6px solid #eee;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#progress-bar {
+    width: 250px;
+    height: 20px;
+}

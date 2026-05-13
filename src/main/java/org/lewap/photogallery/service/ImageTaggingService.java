@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lewap.photogallery.llm.*;
 import org.lewap.photogallery.model.PhotoEntity;
+import org.lewap.photogallery.model.TaskInfo;
+import org.lewap.photogallery.model.TaskStatus;
 import org.lewap.photogallery.repository.PhotoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ImageTaggingService {
@@ -31,8 +35,13 @@ public class ImageTaggingService {
     @Value("${llm.tagging.prompt}")
     private String prompt;
 
+    private final Map<String, TaskInfo> tasks = new ConcurrentHashMap<>();
+
     @Async
-    public void tagImages(String providerName, String model, List<String> ids) {
+    public /*CompletableFuture<Void>*/ void tagImages(String providerName, String model, List<String> ids, String taskId) {
+
+        TaskInfo task = new TaskInfo(TaskStatus.RUNNING, 0, "Tagging...");
+        tasks.put(taskId, task);
 
         LLMProvider provider = registry.get(providerName);
         GenerateOptions options = new GenerateOptions();
@@ -65,18 +74,25 @@ public class ImageTaggingService {
 
             @Override
             public void onComplete() {
-                log.info("Bulk tagging done");
+                log.info("Tagging done");
+                task.setProgress(100);
+                task.setStatus(TaskStatus.COMPLETED);
+                task.setMessage("Tagging done");
             }
 
             @Override
             public void onError(Exception e) {
-                log.error("Error encountered while tagging image", e);
+                log.warn("Failed to tag image", e);
+                task.setStatus(TaskStatus.FAILED);
+                task.setMessage("Tagging failed");
             }
         });
 
+        //return CompletableFuture.completedFuture(null);
     }
 
-    public void complementTags (String providerName, String model) {
+    @Async
+    public void complementTags (String providerName, String model, String taskId) {
         log.info("Complementing tags");
         List<String> ids = new ArrayList<>();
         List<PhotoEntity> photoEntities = photoRepository.findByTagsIsNull();
@@ -84,7 +100,7 @@ public class ImageTaggingService {
             for (PhotoEntity photoEntity : photoEntities) {
                 ids.add(photoEntity.getId());
             }
-            tagImages(providerName, model, ids);
+            tagImages(providerName, model, ids, taskId);
         } else {
             log.info("No photos with empty tags found - not complementing");
         }
@@ -114,6 +130,13 @@ public class ImageTaggingService {
         }
 
         return res;
+    }
+
+    public TaskInfo getTask(String taskId) {
+        return tasks.getOrDefault(
+                taskId,
+                new TaskInfo(TaskStatus.FAILED, 0, "Task not found")
+        );
     }
 
 }

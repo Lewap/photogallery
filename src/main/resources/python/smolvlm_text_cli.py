@@ -39,8 +39,17 @@ else:
 #print(f"Using device: {device}")
 
 # --- Load model ---
-processor = AutoProcessor.from_pretrained(model_name)
-model = AutoModelForVision2Seq.from_pretrained(model_name)
+#processor = AutoProcessor.from_pretrained(model_name)
+processor = AutoProcessor.from_pretrained(
+    model_name,
+    local_files_only=True
+)
+
+#model = AutoModelForVision2Seq.from_pretrained(model_name)
+model = AutoModelForVision2Seq.from_pretrained(
+    model_name,
+    local_files_only=True
+)
 
 # Move model to device (GPU or CPU)
 model = model.to(device)

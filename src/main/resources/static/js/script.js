@@ -324,4 +324,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    const complementTagsBtn = document.getElementById('complement-tags');
+    if (complementTagsBtn) {
+        complementTagsBtn.addEventListener('click', function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/tagging/complement-tags';
+
+            const providerSelect = document.getElementById('provider-select');
+            const provider = providerSelect.value;
+            const providerInput = document.createElement('input');
+            providerInput.type = 'hidden';
+            providerInput.name = 'provider';
+            providerInput.value = provider;
+            form.appendChild(providerInput);
+
+            const modelSelect = document.getElementById('model-select');
+            const model = modelSelect.value;
+            const modelInput = document.createElement('input');
+            modelInput.type = 'hidden';
+            modelInput.name = 'model';
+            modelInput.value = model;
+            form.appendChild(modelInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+
+    ////////
+        const taskContainer = document.getElementById("task-container");
+
+        if (!taskContainer) {
+            return;
+        }
+
+        const taskId = taskContainer.dataset.taskId;
+
+        const loaderEl = document.getElementById("loader-container");
+        const messageEl = document.getElementById("status-message");
+        const progressEl = document.getElementById("progress-bar");
+
+        const interval = setInterval(() => {
+            console.log("taskID = " + taskId)
+            fetch('/api/tagging/status/' + taskId)
+                .then(response => response.json())
+                .then(task => {
+                    messageEl.innerText = task.message;
+                    progressEl.value = task.progress;
+
+                    switch (task.status) {
+                        case 'PENDING':
+                            messageEl.innerText = 'Waiting to start...';
+                            break;
+
+                        case 'RUNNING':
+                            break;
+
+                        case 'COMPLETED':
+                            clearInterval(interval);
+                            loaderEl.style.display = 'none';
+                            //alert('Task completed');
+                            break;
+
+                        case 'FAILED':
+                            clearInterval(interval);
+                            messageEl.innerText = 'Task failed: ' + task.message;
+                            break;
+                    }
+                })
+                .catch(error => {
+                    clearInterval(interval);
+                    console.error(error);
+                    messageEl.innerText = 'Error checking task status';
+                });
+        }, 1500);
+
+
 });

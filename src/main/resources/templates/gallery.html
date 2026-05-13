@@ -50,6 +50,18 @@
             </div>
         </div>
 
+        <div id="task-container" th:data-task-id="${taskId}">
+
+            <div id="loader-container">
+                <div class="spinner"></div>
+
+                <p id="status-message">Starting task...</p>
+
+                <progress id="progress-bar" value="0" max="100"></progress>
+            </div>
+
+        </div>
+
         <div th:if="${message}" class="message">
             <p th:text="${message}"></p>
         </div>

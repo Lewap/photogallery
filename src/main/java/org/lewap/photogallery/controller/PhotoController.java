@@ -31,7 +31,8 @@ public class PhotoController {
     }
 
     @GetMapping("/")
-    public String gallery(Model model) {
+    public String gallery(Model model,
+                          @RequestParam(required = false) String taskId) {
         List<Photo> photos = photoService.getAllPhotos();
         List<String> filteredPhotoIds = imageSearchService.getFilteredPhotoIds();
         if (filteredPhotoIds != null && !filteredPhotoIds.isEmpty())
@@ -39,6 +40,7 @@ public class PhotoController {
         model.addAttribute("photos", photos);
         model.addAttribute("uploadDir", photoService.getUploadDir());
         model.addAttribute("thumbnailDir", photoService.getThumbnailDir());
+        model.addAttribute("taskId", taskId);
         return "gallery";
     }
 
